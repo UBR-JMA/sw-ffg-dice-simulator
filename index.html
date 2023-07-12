@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+c<html>
 <head>
 <!-- Bootstrap 5.0.2 -->
 <link
@@ -16,8 +16,17 @@
   crossorigin="anonymous"
   referrerpolicy="no-referrer"
 />
+<!-- Custom CSS -->
+<style>
+  .btn-check:focus+.btn-outline-success, .btn-outline-success:focus {
+    /* box-shadow: 0 0 0 0.25rem rgba(25,135,84,.5); */
+    box-shadow: none;
+  }
+</style>
 <!-- jQuery 3.6.3-->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<!--Lodash 4.17.20-->
+<script src = "https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js" type = "text/JavaScript" ></script>
 <!-- Highchart 10 -->
 </script><script src="https://code.highcharts.com/10/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/mouse-wheel-zoom.js"></script>
@@ -25,7 +34,15 @@
 <script src="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"></script>
 <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
+<script src="src/tests.js"></script>
 <script>
+  timeMeasure=(callback, label='<Function Name>')=>{
+    let start = performance.now();
+    callback();
+    let end = performance.now();
+    console.log(`${label} took ${(end-start).toFixed(0)} milliseconds.`);
+  }
+
   class DieFace {
     constructor(face) {
       this.face = face;
@@ -125,9 +142,9 @@
         new DieFace("BLANK"),
         new DieFace("BLANK"),
         new DieFace("SUCCESS"),
-        new DieFace("SUCCESS"),
         new DieFace("ADVANTAGE"),
         new DieFace("SUCCESS ADVANTAGE"),
+        new DieFace("DOUBLE ADVANTAGE"),
       ];
       this.numFaces = this.dieFaces.length;
     }
@@ -197,86 +214,85 @@
     constructor(diceCount, modifiers = null) {
       this.diceCount = diceCount;
       this.modifiers = modifiers;
+      this.emptyResults = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0}; 
       this.dice;
       this.totalCombos;
       this.results;
-      this.trueValues;
-      this.cancelledValues;
+      this.totalValues;
+      this.netValues;
       this.success;
       this.advantage;
       this.poolSummary;
+      this.setDice=()=>{
+        this.dice = [];
+        for (var i = 0; i < this.diceCount['Proficiency']; i++) this.dice.push(new Proficiency());
+        for (var i = 0; i < this.diceCount['Ability']; i++) this.dice.push(new Ability());
+        for (var i = 0; i < this.diceCount['Boost']; i++) this.dice.push(new Boost());
+        for (var i = 0; i < this.diceCount['Challenge']; i++) this.dice.push(new Challenge());
+        for (var i = 0; i < this.diceCount['Difficulty']; i++) this.dice.push(new Difficulty());
+        for (var i = 0; i < this.diceCount['Setback']; i++) this.dice.push(new Setback());
+        let combos = 1;
+        for (var i = 0; i < this.dice.length; i++) combos *= this.dice[i].numFaces;
+        this.totalCombos = combos;
+      }
 
       this.setDice();
     }
-    setDice(){
-      this.dice = [];
-      for (var i = 0; i < this.diceCount['Proficiency']; i++) this.dice.push(new Proficiency());
-      for (var i = 0; i < this.diceCount['Ability']; i++) this.dice.push(new Ability());
-      for (var i = 0; i < this.diceCount['Boost']; i++) this.dice.push(new Boost());
-      for (var i = 0; i < this.diceCount['Challenge']; i++) this.dice.push(new Challenge());
-      for (var i = 0; i < this.diceCount['Difficulty']; i++) this.dice.push(new Difficulty());
-      for (var i = 0; i < this.diceCount['Setback']; i++) this.dice.push(new Setback());
-      let combos = 1;
-      for (var i = 0; i < this.dice.length; i++) combos *= this.dice[i].numFaces;
-      this.totalCombos = combos;
-    }
     roll() {
       this.results = [];
-      this.trueValues = this.cancelledValues = undefined;
-      this.poolSummary = this.advantage = this.success = undefined;
+      this.totalValues = this.netValues = null;
+      this.poolSummary = this.advantage = this.success = null;
       for (var i = 0; i < this.dice.length; i++) {
         this.dice[i].roll();
         this.results.push(this.dice[i].result);
       }
-      this.setTrueValues();
-      this.setCancelledValues();
+      this.setTotalValues();
+      this.setNetValues();
       this.setSuccess();
       this.setAdvantage();
       this.setPoolSummary();
     }
-    setTrueValues() {
-      this.trueValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0}
-      for (var result = 0; result < this.results.length; result++) {
-        this.trueValues['s'] += this.results[result].value['s'];
-        this.trueValues['a'] += this.results[result].value['a'];
-        this.trueValues['f'] += this.results[result].value['f'];
-        this.trueValues['t'] += this.results[result].value['t'];
-        this.trueValues['T'] += this.results[result].value['T'];
-        this.trueValues['D'] += this.results[result].value['D'];
-      }
+    setTotalValues() {
+      this.totalValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
+      for (let i = 0; i < this.results.length; i++) {
+        for (let key in this.totalValues){
+          this.totalValues[key] += this.results[i].value[key];
+      }}
       if (this.modifiers != undefined){
-        this.trueValues['s'] += this.modifiers['s'];
-        this.trueValues['a'] += this.modifiers['a'];
-        this.trueValues['f'] += this.modifiers['f'];
-        this.trueValues['t'] += this.modifiers['t'];
-        this.trueValues['T'] += this.modifiers['T'];
-        this.trueValues['D'] += this.modifiers['D'];
-      }
-    }
-    setCancelledValues(){
-      this.cancelledValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0}
-      this.cancelledValues['s'] = this.trueValues['s'] > this.trueValues['f'] ? this.trueValues['s'] - this.trueValues['f'] : 0;
-      this.cancelledValues['a'] = this.trueValues['a'] > this.trueValues['t'] ? this.trueValues['a'] - this.trueValues['t'] : 0;
-      this.cancelledValues['f'] = this.trueValues['f'] > this.trueValues['s'] ? this.trueValues['f'] - this.trueValues['s'] : 0;
-      this.cancelledValues['t'] = this.trueValues['t'] > this.trueValues['a'] ? this.trueValues['t'] - this.trueValues['a'] : 0;
-      this.cancelledValues['T'] = this.trueValues['T'];
-      this.cancelledValues['D'] = this.trueValues['D'];
+        let combined = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
+        for (let key in combined){
+          combined[key] = this.totalValues[key] + this.modifiers[key];
+        }
+        this.totalValues = combined;
+      }}
+    setNetValues(){
+      this.netValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
+      // The best way to DRY this out would be to further connect successes/failures and advantages/threats on a more fundamental level.
+      // In such a case, the effort required to create that connection would be more than the effort required to just write this out.
+      this.netValues['s'] = this.totalValues['s'] > this.totalValues['f'] ? this.totalValues['s'] - this.totalValues['f'] : 0;
+      this.netValues['a'] = this.totalValues['a'] > this.totalValues['t'] ? this.totalValues['a'] - this.totalValues['t'] : 0;
+      this.netValues['f'] = this.totalValues['f'] > this.totalValues['s'] ? this.totalValues['f'] - this.totalValues['s'] : 0;
+      this.netValues['t'] = this.totalValues['t'] > this.totalValues['a'] ? this.totalValues['t'] - this.totalValues['a'] : 0;
+      this.netValues['T'] = this.totalValues['T'];
+      this.netValues['D'] = this.totalValues['D'];
+      //Note that the netValues are derived from the totalValues, not the results.
+      //This means we don't need to redo the modifier math, since it's already been done.
     }
     setSuccess() {
-      this.success = this.getCancelledValues()['s'] > 0;
+      this.success = this.getNetValues()['s'] > 0;
     }
     setAdvantage() {
-      this.advantage = this.getCancelledValues()['a'] > 0;
+      this.advantage = this.getNetValues()['a'] > 0;
     }
     setPoolSummary(){
       this.poolSummary = "";
       let str = "";
-      let successes = this.cancelledValues['s'];
-      let advantages = this.cancelledValues['a'];
-      let triumphs = this.cancelledValues['T'];
-      let failures = this.cancelledValues['f'];
-      let threats = this.cancelledValues['t'];
-      let despairs = this.cancelledValues['D'];
+      let successes = this.netValues['s'];
+      let advantages = this.netValues['a'];
+      let triumphs = this.netValues['T'];
+      let failures = this.netValues['f'];
+      let threats = this.netValues['t'];
+      let despairs = this.netValues['D'];
       if (successes > 0) str += successes + " SUCCESS" + (successes > 1 ? "ES" : "");
       if (advantages > 0) str += (str.length > 0 ? ", " : "") + advantages + " ADVANTAGE" + (advantages > 1 ? "S" : "");
       if (triumphs > 0) str += (str.length > 0 ? ", " : "") + triumphs + " TRIUMPH" + (triumphs > 1 ? "S" : "");
@@ -286,37 +302,16 @@
       this.poolSummary = str;
     }
 
-    getDiceCount() {
-      return this.diceCount;
-    }
-    getModifiers() {
-      return this.modifiers;
-    }
-    getDice() {
-      return this.dice;
-    }
-    getTotalCombos() {
-      //this.totalCombos = this.totalCombos > 999999999999 ? Number.parseFloat(this.totalCombos).toExponential(2) : this.totalCombos.toLocaleString();
-      return this.totalCombos;
-    }
-    getResults() {
-      return this.results;
-    }
-    getTrueValues() {
-      return this.trueValues;
-    }
-    getCancelledValues() {
-      return this.cancelledValues;
-    }
-    getSuccess() {
-      return this.success;
-    }
-    getAdvantage() {
-      return this.advantage;
-    }
-    getPoolSummary() {
-      return this.poolSummary;
-    }
+    getDiceCount=()=>       this.diceCount
+    getModifiers=()=>       this.modifiers
+    getDice=()=>            this.dice
+    getTotalCombos=()=>     this.totalCombos
+    getResults=()=>         this.results
+    getTotalValues=()=>     this.totalValues
+    getNetValues=()=>       this.netValues;
+    getSuccess=()=>         this.success
+    getAdvantage=()=>       this.advantage;
+    getPoolSummary=()=>     this.poolSummary
     toString() {
       let str = "";
       for (var i = 0; i < this.dice.length; i++) {
@@ -326,9 +321,10 @@
     }
   }
   class DiceTrial {
-    constructor(dicePool, numRolls){
+    constructor(dicePool, numRolls, measure){
       this.dicePool = dicePool;
       this.numRolls = numRolls;
+      this.measure = measure ?? false;
       this.trials = [];
       this.results = [];
       this.cancelledResults = [];
@@ -342,41 +338,50 @@
       this.cancelledTotalValues;
       this.cancelledAverageValues;
       this.cancelledtrialSummary;
-    }
-    runTrial() {
-      for (var i = 0; i < this.numRolls; i++) {
-        this.dicePool.roll();
-        this.trials.push(this.dicePool.results);
-        this.results.push(this.dicePool.getTrueValues());
-        this.cancelledResults.push(this.dicePool.getCancelledValues());
+      this.aggregateResults=()=>{
+        for (var i = 0; i < this.numRolls; i++) {
+          this.dicePool.roll();
+          //this.trials.push(this.dicePool.results);
+          this.results.push(this.dicePool.getTotalValues());
+          this.cancelledResults.push(this.dicePool.getNetValues());
+        }
       }
     }
+    runTrial=()=> this.measure ? timeMeasure(this.aggregateResults, 'DiceTrial.aggregateResults()') : this.aggregateResults();
+    
     setTabulatedResults(){
       //this function aims to get the magnitude of occurrenses of each result
       //this will be used to construct a bell curve or histogram of results
       //for example, each roll can have a number of 'successes'
       //this function will tally the number of times 1 success was rolled, 2 successes, 3 successes, etc.
-      let tabulated = {'s': null, 'a': null, 'f': null, 't': null, 'T': null, 'D': null};
+      let tabulated = {'s': {}, 'a': {}, 'f': {}, 't': {}, 'T': {}, 'D': {}};
       //for each result in the results array
-      for (var i = 0; i < this.results.length; i++) {
+      for (let i = 0; i < this.results.length; i++) {
         //for each key in the result
-        for (var key in this.results[i]) {
-          //if the key is not in the tabulated object, add it
-          if (tabulated[key] == null) {
-            tabulated[key] = {};
-          }
+        for (let key in this.results[i]) {
           //if the key is in the tabulated object, add the value to the key
           if (tabulated[key][this.results[i][key]] == null) {
             tabulated[key][this.results[i][key]] = 1;
           } else {
             tabulated[key][this.results[i][key]]++;
-          }
-        }
-      }
+      }}}
+
+      //get the max occurrence
+      let occurrences = [];
+      for (let outcome in tabulated) { occurrences.push(Object.keys(tabulated[outcome]));}
+      occurrences = [...new Set(occurrences.flat())];
+      let max = Math.max(...occurrences);
+      //use the max occurrence to ensure that the tabulated object has a key for every possible outcome
+      for (let outcome in tabulated) {
+        for (let i = 0; i <= max; i++) {
+          if (tabulated[outcome][i] == null) {
+            tabulated[outcome][i] = 0;
+      }}}
+
       this.tabulatedResults = tabulated;
     }
     setTabulatedResultsPercents(){
-      if (this.tabulatedResults == null) {this.setTabulatedResults();}
+      this.tabulatedResults ?? this.setTabulatedResults();
       // this function takes the tabulated results and converts the values to percents
       // for each key of the tabulated results, there is a dictionry of values
       // the key of that dictionary is the quantity of a given outcome for any given roll,
@@ -384,11 +389,11 @@
       // this function will convert the values of the dictionary to percents
       // for example, if there are 200 rolls, and 50 of them had 2 successes,
       // the value of the ['s'] dictionary for the key '2' will be 25% (50/200)
-      let tabulatedPercents = {};
+      let tabulatedPercents = {'s': {0:0}, 'a': {0:0}, 'f': {0:0}, 't': {0:0}, 'T': {0:0}, 'D': {0:0}};
       for (var key in this.tabulatedResults) {
         tabulatedPercents[key] = {};
         for (var key2 in this.tabulatedResults[key]) {
-          tabulatedPercents[key][key2] = ((this.tabulatedResults[key][key2] / this.numRolls) * 100).toFixed(2);
+          tabulatedPercents[key][key2] = (this.tabulatedResults[key][key2] / this.numRolls) * 100;
         }
       }
       this.tabulatedResultsPercents = tabulatedPercents;
@@ -396,43 +401,50 @@
     setCancelledTabulatedResults(){
       //this function will work in almost the exact same way as setTabulatedResults
       //with the exception that it will be getting the cancelledValues instead of the trueValues of each roll
-      let cancelledTabulated = {'s': null, 'a': null, 'f': null, 't': null, 'T': null, 'D': null};
+      let netTabulated = {'s': {}, 'a': {}, 'f': {}, 't': {}, 'T': {}, 'D': {}};
       for (var i = 0; i < this.cancelledResults.length; i++) {
         for (var key in this.cancelledResults[i]) {
-          if (cancelledTabulated[key] == null) {
-            cancelledTabulated[key] = {};
-          }
-          if (cancelledTabulated[key][this.cancelledResults[i][key]] == null) {
-            cancelledTabulated[key][this.cancelledResults[i][key]] = 1;
+          if (netTabulated[key][this.cancelledResults[i][key]] == null) {
+            netTabulated[key][this.cancelledResults[i][key]] = 1;
           } else {
-            cancelledTabulated[key][this.cancelledResults[i][key]]++;
-          }
-        }
+            netTabulated[key][this.cancelledResults[i][key]]++;
+      }}}
+
+      //get the max occurrence
+      let occurrences = [];
+      for (let outcome in netTabulated) {
+        occurrences.push(Object.keys(netTabulated[outcome]));
       }
-      this.cancelledTabulatedResults = cancelledTabulated;
+      occurrences = [...new Set(occurrences.flat())];
+      let max = Math.max(...occurrences);
+      //use the max occurrence to ensure that the cancelledTabulated object has a key for every possible outcome
+      for (let outcome in netTabulated) {
+        for (let i = 0; i <= max; i++) {
+          if (netTabulated[outcome][i] == null) {
+            netTabulated[outcome][i] = 0;
+      }}}
+
+
+      this.cancelledTabulatedResults = netTabulated;
     }
     setCancelledTabulatedResultsPercents(){
       // this function will work like setTabulatedResultsPercents, but with the cancelledTabulatedResults
-      if (this.cancelledTabulatedResults == null) {this.setCancelledTabulatedResults();}
+      this.cancelledTabulatedResults ?? this.setCancelledTabulatedResults();
       let tabulatedPercents = {};
       for (var key in this.cancelledTabulatedResults) {
         tabulatedPercents[key] = {};
         for (var key2 in this.cancelledTabulatedResults[key]) {
-          tabulatedPercents[key][key2] = ((this.cancelledTabulatedResults[key][key2] / this.numRolls) * 100).toFixed(2);
+          tabulatedPercents[key][key2] = (this.cancelledTabulatedResults[key][key2] / this.numRolls) * 100;
         }
       }
       this.cancelledTabulatedResultsPercents = tabulatedPercents;
     }
     setTotalValues(){
-      let totalValues = {'s': 0.0, 'a': 0.0, 'f': 0.0, 't': 0.0, 'T': 0.0, 'D': 0.0};
+      let totalValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
       for (var i = 0; i < this.results.length; i++) {
-        totalValues['s'] += this.results[i]['s'];
-        totalValues['a'] += this.results[i]['a'];
-        totalValues['f'] += this.results[i]['f'];
-        totalValues['t'] += this.results[i]['t'];
-        totalValues['T'] += this.results[i]['T'];
-        totalValues['D'] += this.results[i]['D'];
-      }
+        for (let key in totalValues) {
+          totalValues[key] += this.results[i][key];
+      }}
       this.totalValues = totalValues;
     }
     setAverageValues(){
@@ -498,49 +510,48 @@
       this.cancelledTrialSummary = str;
     }
 
-    getTrials(){
-      return this.trials;
-    }
+    getTrials=()=> this.trials
+    getNumRolls=()=> this.numRolls
     getTabulatedResults(){
-      (this.tabulatedResults == undefined) && this.setTabulatedResults();
+      this.tabulatedResults ?? this.setTabulatedResults();
       return this.tabulatedResults;
     }
     getTabulatedResultsPercents(){
-      (this.tabulatedResultsPercents == undefined) && this.setTabulatedResultsPercents();
+      this.tabulatedResultsPercents ?? this.setTabulatedResultsPercents();
       return this.tabulatedResultsPercents;
     }
     getCancelledTabulatedResults(){
-      (this.cancelledTabulatedResults == undefined) && this.setCancelledTabulatedResults();
+      this.cancelledTabulatedResults ?? this.setCancelledTabulatedResults();
       return this.cancelledTabulatedResults;
     }
     getCancelledTabulatedResultsPercents(){
-      (this.cancelledTabulatedResultsPercents == undefined) && this.setCancelledTabulatedResultsPercents();
+      this.cancelledTabulatedResultsPercents ?? this.setCancelledTabulatedResultsPercents();
       return this.cancelledTabulatedResultsPercents;
     }
     getTotalValues(){
-      (this.totalValues == undefined) && this.setTotalValues();
+      this.totalValues ?? this.setTotalValues();
       return this.totalValues;
     }
     getAverageValues(){
-      (this.averageValues == undefined) && this.setAverageValues();
+      this.averageValues ?? this.setAverageValues();
       return this.averageValues;
     }
     getTrialSummary(){
-      (this.trialSummary == undefined) && this.setTrialSummary();
+      this.trialSummary ?? this.setTrialSummary();
       return this.trialSummary;
     }
     getCancelledTotalValues(){
-      (this.cancelledTotalValues == undefined) && this.setCancelledTotalValues();
+      this.cancelledTotalValues ?? this.setCancelledTotalValues();
       return this.cancelledTotalValues;
     }
     getCancelledAverageValues(){
-      (this.cancelledAverageValues == undefined) && this.setCancelledAverageValues();
+      this.cancelledAverageValues ?? this.setCancelledAverageValues();
       return this.cancelledAverageValues;
     }
     getCancelledTrialSummary(){
-    (this.cancelledTrialSummary == undefined) && this.setCancelledTrialSummary();
-    return this.cancelledTrialSummary;
-  }
+      this.cancelledTrialSummary ?? this.setCancelledTrialSummary();
+      return this.cancelledTrialSummary;
+    }
   }
 
 /*   // DieFace class tests
@@ -647,44 +658,142 @@
     initialized = false;
     $(function (){$('[data-toggle="tooltip"]').tooltip();});
 
+
+    // declarations for known and static values
+    const DEV = {
+      PERFORMANECE_MEASUREMENT: {
+        FUNCTION_SPEED: true,
+      }
+    };
+    const BUFFS = ["Proficiency", "Ability", "Boost"];
+    const DEBUFFS = ["Challenge", "Difficulty", "Setback"];
+    const DICE_TYPES = BUFFS.concat(DEBUFFS);
+    const POSITIVE_OUTCOMES = ["SUCCESS", "ADVANTAGE", "TRIUMPH"];
+    const NEGATIVE_OUTCOMES = ["FAILURE", "THREAT", "DESPAIR"];
+    const POSITIVE_ICONS = BUFFS.concat(POSITIVE_OUTCOMES);
+    const NEGATIVE_ICONS = DEBUFFS.concat(NEGATIVE_OUTCOMES);
+    const OUTCOMES = POSITIVE_OUTCOMES.concat(NEGATIVE_OUTCOMES);
+    const OUTCOMES_INIT_CAP_PLURAL = ["Successes", "Advantages", "Triumphs", "Failures", "Threats", "Despairs"];
+    const INPUTS = (
+      _.times(DICE_TYPES.length, (i)=> _.lowerCase(DICE_TYPES[i] + '-input'))
+    ).concat(
+      _.times(DICE_TYPES.length, (i)=> _.lowerCase(DICE_TYPES[i] + '-input'))
+    )
+    const POOL_INPUTS = 0;
+    const ALL_ICONS = POSITIVE_ICONS.concat(NEGATIVE_ICONS);
+    const DICE_STRIP_ICON_WIDTH   = 30;
+    const DICE_STRIP_ICON_SPACING = 2;
+    const DICE_STRIP_MAX_ICONS    = 20;
+    const CHART_FADE_SPEED = 100; //millisecond
+    const SECTION_SLIDING_SPEED = 250; //millisecond
+    const SPINNER_SPEED = 100; //millisecond
+    const CHART_FADE_EASING = 'swing';
+    const HIGHCHARTS = [
+      'highchart-netPercent',
+      'highchart-totalPercent',
+      'highchart-net',
+      'highchart-total'
+    ];
+    const CHART_BUTTONS = { // the buttons that show/hide the charts, as jQuery objects
+      'netPercent': $('#netPercent-chart-btn'),
+      'totalPercent': $('#totalPercent-chart-btn'),
+      'net': $('#net-chart-btn'),
+      'total': $('#total-chart-btn'),
+    };
+    const CHART_BOXES = { // the boxes that contain the charts, as jQuery objects
+      'netPercent': $('#netPercent-chart-box'),
+      'totalPercent': $('#totalPercent-chart-box'),
+      'net': $('#net-chart-box'),
+      'total': $('#total-chart-box'),
+    };
+    
+
+    // SECTION: SITE SECTION FOLDING
+    //Folding Toolkit
+    const SECTION_NAMES = {
+      //  name    :  label,
+      'dicepool'  : 'Dice Pool',
+      'summary'   : 'Summary',
+      'charts'    : 'Charts',
+      'tables'    : 'Tables',
+    };
+    function showSection($button, $container, $box, label, speed=SECTION_SLIDING_SPEED){
+      hideAllSections();
+      $button.html(`<b>${label}</b>`);
+      $button.addClass('disabled');
+      $button.addClass('bg-light');
+      $button.addClass('text-dark');
+      $container.slideDown(speed);
+      $box.css('box-shadow', '0px 0px 10px 5px white, 0px 0px 10px 5px white inset');
+    }
+    function hideSection($button, $container, $box, label, speed=SECTION_SLIDING_SPEED){
+      $box.css('box-shadow', '0px 0px 0px 0px white, 0px 0px 0px 0px white inset');
+      $button.html(`<b>${label} ▼</b>`);
+      $button.removeClass('disabled');
+      $button.removeClass('bg-light');
+      $button.removeClass('text-dark');
+      $container.slideUp(speed);
+    }
+    function hideAllSections(){
+      _.each(SECTION, function(section, sectionName){
+        section.hide();
+      });
+    }
+    
+    SECTION = {};
+    _.each(SECTION_NAMES, function(label, sectionName){
+      _.set(SECTION, sectionName, {
+        'label'         : label,
+        'speed'         : SECTION_SLIDING_SPEED,
+        '$container'    : $('#'+sectionName), 
+        '$btn'          : $('#'+sectionName+'-btn'),
+        '$box'          : $('#'+sectionName+'-box'),
+        'isHidden'      : function(){return this.$container.is(':hidden');},
+        'isShown'       : function(){return this.$container.is(':visible');},
+        'hide'          : function(btn=this.$btn, container=this.$container, box=this.$box, label=this.label, speed=this.speed){hideSection(btn, container, box, label, speed);},
+        'show'          : function(btn=this.$btn, container=this.$container, box=this.$box, label=this.label, speed=this.speed){showSection(btn, container, box, label, speed);},
+        'toggle'        : function(){this.isHidden() ? this.show() : this.hide();},
+        'bound'         : false,
+        'isBound'       : function(){return this.bound;},
+        'bindBtn'       : function(){
+          if (!this.bound){
+            this.$btn.click(this.toggle.bind(this));
+            this.bound = true;
+          }
+          return this.bound;
+        }
+      });
+    });
+    
+    
+    //declarations for globally tracked values
     var dicePoolShown = false;
-    var summaryShown = false;
-    var rollsShown = false;
-    var graphsShown = false;
+    var summaryShown  = false;
+    var chartsShown   = false;
+    var tablesShown   = false;
     var numRolls;
     var numDice;
     var numModifiers;
     var numIconTypes;
     var chart;
+    var chartsData = {};
+    var charts = {}
+    var currentChart = CHART_BOXES['netPercent'];
+    var spinnerIntervalID;
+    var spinnerActive = false;
 
-    const
-      BUFFS = ["Proficiency", "Ability", "Boost"],
-      DEBUFFS = ["Challenge", "Difficulty", "Setback"],
-      DICE_TYPES = ["Proficiency", "Ability", "Boost", "Challenge", "Difficulty", "Setback"],
-      POSITIVE_OUTCOMES = ["SUCCESS", "ADVANTAGE", "TRIUMPH"],
-      NEGATIVE_OUTCOMES = ["FAILURE", "THREAT", "DESPAIR"],
-      POSITIVE_ICONS = BUFFS.concat(POSITIVE_OUTCOMES),
-      NEGATIVE_ICONS = DEBUFFS.concat(NEGATIVE_OUTCOMES),
-      OUTCOMES = ["SUCCESS", "ADVANTAGE", "TRIUMPH", "FAILURE", "THREAT", "DESPAIR"],
-      OUTCOMES_INIT_CAP_PLURAL = ["Successes", "Advantages", "Triumphs", "Failures", "Threats", "Despairs"],
-      ALL_ICONS = POSITIVE_ICONS.concat(NEGATIVE_ICONS);
-      SECTIONS = [$('#dice-pool'), $('#summary'), $('#rolls'), $('#graphs')];
-      CHART_BUTTONS = [$('#total-chart-btn'), $('#total-percent-chart-btn'), $('#adjusted-chart-btn'), $('#adjusted-percent-chart-btn')];
-      CHART_BOXES = [$('#total-chart-box'), $('#total-percent-chart-box'), $('#adjusted-chart-box'), $('#adjusted-percent-chart-box')];
+    _.each(CHART_BOXES, box => box.hide());
+    _.forEach(SECTION, (section) => section.bindBtn() && section.$container.hide());
+    $('#spinner-image').hide();
 
-    SECTIONS.forEach(function(section){
-      section.hide();
-    });
-    CHART_BOXES.forEach(element => {
-      element.hide();
-    });
-  
     //SECTION: EVENT HANDLERS
     // When any dice or modifier input is changed...
     $('.form-control').change(function(){
       $('#total-roll-combos').html('Total Distinct Rolls: ' + getTotalRollCombos());
+      
+      updateIconStrip();
     });
-    function getTotalRollCombos(){
+    function getTotalRollCombos(){ // what happens whenever any dice or modifier input is changed
       /*
         These multipliers might look weird, why don't they just get the numFaces value?
         well, the numFaces value is the number of faces on the die, but the total 
@@ -709,8 +818,9 @@
       return numCombos.toLocaleString();
     }
 
-    $("#run-trials").click(function(){
+    $("#run-trials").click(function(){ //what happens whgen the run trials button is clicked
       disableTrialBtn();
+      spinner();
       
       //Input & Declarations
       var dice = new Dice([
@@ -734,8 +844,9 @@
       numIconTypes = numDice + numModifiers;
       numRolls = parseInt($('#roll-number-input').val());
       let dicePool  = new DicePool(dice, modifiers);
-      let diceTrial = new DiceTrial(dicePool, numRolls);
+      let diceTrial = new DiceTrial(dicePool, numRolls, DEV.PERFORMANECE_MEASUREMENT.FUNCTION_SPEED);
 
+      //if the user has entered any amount of dice as input
       if (numIconTypes > 0){
         let startTime = performance.now();
 
@@ -744,8 +855,7 @@
         trialSummary = diceTrial.getTrialSummary();
         cancelledTrialSummary = diceTrial.getCancelledTrialSummary();
 
-        //Update the rolls/tables section
-        updateIconStrip();
+        //Update the tables section
         let totalValues = diceTrial.getTotalValues();
         let averageValues = diceTrial.getAverageValues();
         let cancelledTotalValues = diceTrial.getCancelledTotalValues();
@@ -753,16 +863,17 @@
         updateResultsTable(totalValues, averageValues, cancelledTotalValues, cancelledAverageValues);
         $('#roll-count-label').html(`After cross-cancellation and ${numRolls.toLocaleString()} rolls, the average results of the dice pool above is:`);
 
-        //update the graphs section
-        let tabulatedResults = diceTrial.getTabulatedResults();
-        let tabulatedResultsPercents = diceTrial.getTabulatedResultsPercents();
-        let cancelledTabulatedResults = diceTrial.getCancelledTabulatedResults();
-        let cancelledTabulatedResultsPercents = diceTrial.getCancelledTabulatedResultsPercents();
-        buildTotalGraph(tabulatedResults, tabulatedResultsPercents, cancelledTabulatedResults, cancelledTabulatedResultsPercents);
+        //update the charts section
+        buildCharts(diceTrial);
+        //showChart(CHART_BUTTONS.netPercent, CHART_BOXES.netPercent);
+        //click the CHART_BUTTON for netPercent instead
+        CHART_BUTTONS.netPercent.click();
+        
         
         //update the summary section
         updateTrialSummary(cancelledAverageValues);
-        showSummary();
+        spinner();
+        SECTION.summary.show();
 
         let endTime = performance.now();
         let timeDiff = (endTime - startTime)/1000; // function run time in seconds
@@ -829,11 +940,8 @@
       updateAdjustedTotals(cancelledTotalValues);
       updateAdjustedAverages(cancelledAverageValues);
     }
+    
     //Rolls > Dice Icon Strip
-    const
-      DICE_STRIP_ICON_WIDTH   = 25,
-      DICE_STRIP_ICON_SPACING = 2,
-      DICE_STRIP_MAX_ICONS    = 38;
     function appendIcons(container, name = "blank", count = DICE_STRIP_ICON_SPACING){
       for (i=0; i<count; i++) {
         let img = document.createElement("img");
@@ -843,7 +951,7 @@
         container.append(img);
       }
     }
-    function appendIconCount(container, name, count){
+    function appendIconCount(container, count, name){
       // for cases where the total number of icons exceeds 40,
       // show a singular dice type icon followed by it's count.
 
@@ -855,9 +963,10 @@
       container.append(iconImg);
       //append the count
       let countLabel = document.createElement("span");
-      countLabel.innerHTML = "x" + count;
-      $(countLabel).addClass('h6');
+      countLabel.innerHTML = " x " + count + "&nbsp;";
+      $(countLabel).addClass('h3');
       $(countLabel).addClass('pl-1');
+      $(countLabel).addClass('text-light');
       container.append(countLabel);
       //append the blank icon
       let blankImg = document.createElement("img");
@@ -879,10 +988,7 @@
           let count = parseInt($(`#${name}-input`).val());
           appendIcons(container, name + suffix, count);
         }
-        
-        //blanks for spacing
-        appendIcons(container);
-
+        //appendIcons(container); //blanks for spacing
         for (let i = 0; i < NEGATIVE_ICONS.length; i++){
           name = (NEGATIVE_ICONS[i]).toLowerCase();
           let suffix = NEGATIVE_OUTCOMES.includes((NEGATIVE_ICONS[i]).toUpperCase()) ? "-light" : "";
@@ -898,11 +1004,12 @@
             if (OUTCOMES.includes(name.toUpperCase())){
               name += "-light";
             }
-            appendIconCount(container, name, count);
+            appendIconCount(container, count, name);
           }
         }
       }
     }
+    
     //Rolls > Trial Summary
     function updateTrialSummary(cancelledAverageValues){
       let success = cancelledAverageValues['s'] > cancelledAverageValues['f'];
@@ -969,10 +1076,80 @@
       advantageLabelElem.addClass(advantage ? 'text-success' : 'text-danger');
       advantageLabelElem.html(advantageText);
     }
-    //Graphs > Charts
-    function buildTotalGraph(tabulatedResults, tabulatedResultsPercents, cancelledTabulatedResults, cancelledTabulatedResultsPercents){
-      let data = buildChartData(tabulatedResults);
-      chart = Highcharts.chart('highchart-total', {
+    
+    //Charts
+    function buildCharts(diceTrial){
+      buildChart( //netPercent
+        diceTrial.getCancelledTabulatedResultsPercents(),
+        'netPercent',
+        'highchart-netPercent',
+        'Net Results (Percentages)',
+        `
+            A histogram of of dice symbol occurrences per roll
+            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
+            Measured as percentages. Opposite outcomes are cross-cancelled.
+        `,
+        '# of Outcomes/ Roll',
+        'Net Results (%)',
+        100,
+        '%'
+      );
+      buildChart( //totalPercent
+        diceTrial.getTabulatedResultsPercents(),
+        'totalPercent',
+        'highchart-totalPercent',
+        'Total Results (Percentages)',
+        `
+            A histogram of of dice symbol occurrences per roll
+            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
+            Measured as percentages. Opposite outcomes are <i>NOT</i> cross-cancelled.
+        `,
+        'Percent of Rolls',
+        'Total Results',
+        100,
+        '%'
+      );
+      buildChart( //netSum
+        diceTrial.getCancelledTabulatedResults(),
+        'net',
+        'highchart-net',
+        'Net Results',
+        `
+            A histogram of of dice symbol occurrences per roll
+            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
+            Measured as sum total. Opposite outcomes are cross-cancelled.
+        `,
+        'Number of Rolls',
+        'Total Results',
+        numRolls
+      );
+      buildChart( //totalSum
+        diceTrial.getTabulatedResults(),
+        'total',
+        'highchart-total',
+        'Total Results',
+        `
+            A histogram of of dice symbol occurrences per roll
+            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
+            Measured as sum total. Opposite outcomes are <i>NOT</i> cross-cancelled.
+        `,
+        'Number of Rolls',
+        'Total Results',
+        numRolls
+      );
+    }
+    //buildCharts helpers
+    function buildChart(chartData, chartName, targetElementId, titleText, subtitleText, xAxisTitle, yAxisTitle, yMax, chartYUnitsRight=''){
+      _.set(chartsData, chartName, buildChartData(chartData, yMax));
+      _.set(chartsData[chartName], 'targetElementId', targetElementId);
+      _.set(chartsData[chartName], 'titleText', titleText);
+      _.set(chartsData[chartName], 'subtitleText', subtitleText);
+      _.set(chartsData[chartName], 'xAxisTitle', xAxisTitle);
+      _.set(chartsData[chartName], 'yAxisTitle', yAxisTitle);
+      _.set(chartsData[chartName], 'chartYUnitsRight', chartYUnitsRight);
+      
+      let chartOptions = chartsData[chartName];
+      chart = Highcharts.chart(chartOptions.targetElementId, {
         chart: {
           type: 'column',
           panning : {
@@ -996,15 +1173,12 @@
           align: 'right',
           verticalAlign: 'middle',
         },
-        series: data['array'],
+        series: chartOptions.array,
         subtitle: {
-          text: `
-            A histogram of of dice symbol occurrences per roll of the given dice pool,
-            over ${numRolls.toLocaleString()} rolls of that dice pool.
-          `,
+          text: chartOptions.subtitleText
         },
         title: {
-          text: 'Outcomes',
+          text: chartOptions.titleText,
         },
         tooltip: {
           formatter: function () {
@@ -1014,16 +1188,11 @@
               outcomePS[outcome] = OUTCOMES[i].toLowerCase();
               i++;
             });
-            let imgSrc = `./images/${outcomePS[this.series.name]}-dark.png`;
 
             return `
-              <b>${this.y.toLocaleString()}</b> out of the <b>${numRolls.toLocaleString()}
-              </b> rolls had a total of <b>${this.x}</b>
+              <b>${((this.y).toLocaleString()) + chartOptions.chartYUnitsRight}</b> had <b>${this.x}</b>
               <span style="color: ${this.series.color}; "text-shadow: 0px 0px 10px #777, 0px 0px 2px #fff;"">
                 <b>${this.series.name}.</b>
-              </span>
-              <span>
-                <img src="${imgSrc} style="height: 2rem; width: auto; margin-left: 1rem; margin-bottom: 0.5rem;"/>
               </span>
 
             `;
@@ -1032,15 +1201,15 @@
         xAxis: {
           min: 0,
           title: {
-            text: 'X (Count)'
+            text: chartOptions.xAxisTitle,
           },
-          categories: data['combinedCategories'],
+          categories: chartOptions.combinedCategories,
           crosshair: true,
         },
         yAxis: {
           min: 0,
           title: {
-            text: `Y (Frequency)`
+            text: chartOptions.yAxisTitle,
           },
           crosshair: true,
           startOnTick: false,
@@ -1048,176 +1217,24 @@
         },
       });
 
-      data = buildChartData(tabulatedResultsPercents);
-      chart = Highcharts.chart('highchart-total-percent', {
-        chart: {
-          type: 'column',
-          zooming: {
-            type: 'xy',
-            mouseWheel: true,
-          },
-        },
-        title: {
-          text: 'Outcomes',
-        },
-        subtitle: {
-          text: `
-            A histogram of of dice symbol occurrences per roll of the given dice pool,
-            over ${numRolls.toLocaleString()} rolls of that dice pool as percentages.
-          `,
-        },
-        legend: {
-          enabled: true,
-          title: {
-            text: 'Outcome',
-            style: {
-              textAlign: 'center',
-            },
-          },
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-        },
-        xAxis: {
-          min: 0,
-          title: {
-            text: 'X (Count)'
-          },
-          categories: data['combinedCategories'],
-          crosshair: true,
-        },
-        yAxis: {
-          min: 0,
-          title: {
-            text: `Y (Frequency %)`
-          },
-          crosshair: true,
-          startOnTick: false,
-          endOnTick: false,
-        },
-        series: data['array'],
-      });
-
-      data = buildChartData(cancelledTabulatedResults);
-      chart = Highcharts.chart('highchart-adjusted', {
-        chart: {
-          type: 'column',
-          zooming: {
-            type: 'xy',
-            mouseWheel: true,
-          },
-        },
-        title: {
-          text: 'Outcomes',
-        },
-        subtitle: {
-          text: `
-            A histogram of of dice symbol occurrences per roll of the given dice pool,
-            over ${numRolls.toLocaleString()} rolls of that dice pool as percentages.
-          `,
-        },
-        legend: {
-          enabled: true,
-          title: {
-            text: 'Outcome',
-            style: {
-              textAlign: 'center',
-            },
-          },
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-        },
-        xAxis: {
-          min: 0,
-          title: {
-            text: 'X (Count)'
-          },
-          categories: data['combinedCategories'],
-          crosshair: true,
-        },
-        yAxis: {
-          min: 0,
-          title: {
-            text: `Y (Frequency %)`
-          },
-          crosshair: true,
-          startOnTick: false,
-          endOnTick: false,
-        },
-        series: data['array'],
-      });
-
-      data = buildChartData(cancelledTabulatedResults);
-      chart = Highcharts.chart('highchart-adjusted-percent', {
-        chart: {
-          type: 'column',
-          zooming: {
-            type: 'xy',
-            mouseWheel: true,
-          },
-        },
-        title: {
-          text: 'Outcomes',
-        },
-        subtitle: {
-          text: `
-            A histogram of of dice symbol occurrences per roll of the given dice pool,
-            over ${numRolls.toLocaleString()} rolls of that dice pool as percentages.
-          `,
-        },
-        legend: {
-          enabled: true,
-          title: {
-            text: 'Outcome',
-            style: {
-              textAlign: 'center',
-            },
-          },
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-        },
-        xAxis: {
-          min: 0,
-          title: {
-            text: 'X (Count)'
-          },
-          categories: data['combinedCategories'],
-          crosshair: true,
-        },
-        yAxis: {
-          min: 0,
-          title: {
-            text: `Y (Frequency %)`
-          },
-          crosshair: true,
-          startOnTick: false,
-          endOnTick: false,
-        },
-        series: data['array'],
-      });
-
-      //show total chart
-      showChart($('#total-chart-btn'), $('#total-chart-box'));
     }
-    function buildChartData(results){
-      let series = [];
-      let data = {};
-      let combinedCategories = [];
-      let allSeriesArray = [];
+    function buildChartData(results, yMax){
+      let data = {
+        'combinedCategories': [],
+        'array': [],
+      };
+      // for each outcome, build a series of x
       for (let outcome = 0; outcome < OUTCOMES_INIT_CAP_PLURAL.length; outcome++){
-        series = getResultSeries(results, OUTCOMES_INIT_CAP_PLURAL[outcome]);
-        data[OUTCOMES_INIT_CAP_PLURAL[outcome]] = series;
-        combinedCategories = [...new Set([...combinedCategories, ...series['categories']])];
-        allSeriesArray.push(series);
+        let series = getResultSeries(results, OUTCOMES_INIT_CAP_PLURAL[outcome]);
+        data.combinedCategories = _.union(data.combinedCategories, series.categories);
+        if (series.data[0] != yMax){
+          data.array = _.union(data.array, [series]);
+        }
       }
-      data['array'] = allSeriesArray;
-      data['combinedCategories'] = combinedCategories;
 
       return data;
     }
-    function getResultSeries(tabulatedResults, name){
+    function getResultSeries(results, name){
       let outcome;
       let color;
       switch (name){
@@ -1248,12 +1265,12 @@
       }
       let data = [];
       let categories = [];
-      let keys = Object.keys(tabulatedResults[outcome]);
+      let keys = Object.keys(results[outcome]);
       for (key in keys){
         categories.push(key);
       }
-      for (value in tabulatedResults[outcome]){
-        data.push(tabulatedResults[outcome][value]);
+      for (value in results[outcome]){
+        data.push(results[outcome][value]);
       }
       let resultSeries = {
         'name': name,
@@ -1264,90 +1281,8 @@
       return resultSeries;
     }
 
-
-    // SECTION: SITE SECTION FOLDING
-    const SLIDING_SPEED = 250; //milliseconds
-    //Folding Toolkit
-    function showSection($button, $section, $box, label, speed=SLIDING_SPEED){
-      $button.html(`<b>${label}</b>`);
-      $button.addClass('disabled');
-      $button.addClass('bg-light');
-      $button.addClass('text-dark');
-      $section.slideDown(speed);
-      $box.css('box-shadow', '0px 0px 10px 5px white, 0px 0px 10px 5px white inset');
-    }
-    function hideSection($button, $section, $box, label, speed=SLIDING_SPEED){
-      $box.css('box-shadow', '0px 0px 0px 0px white, 0px 0px 0px 0px white inset');
-      $button.html(`<b>${label} ▼</b>`);
-      $button.removeClass('disabled');
-      $button.removeClass('bg-light');
-      $button.removeClass('text-dark');
-      $section.slideUp(speed);
-    }
-    // Dice Pool Folding
-    function hideDicePool(){
-      disableTrialBtn();
-      hideSection($('#dice-pool-collapse'), $('#dice-pool'), $('#dice-pool-box'), "Dice Pool");
-      dicePoolShown = false;
-    }
-    function showDicePool(){
-      let speed = !initialized ? 1 : SLIDING_SPEED; 
-      showSection($('#dice-pool-collapse'), $('#dice-pool'), $('#dice-pool-box'), "Dice Pool", speed);
-      hideRolls();
-      hideSummary();
-      hideGraphs();
-      enableTrialBtn();
-      dicePoolShown = true;
-    }
-    function toggleDicePool(){dicePoolShown ? hideDicePool() : showDicePool();}
-    $('#dice-pool-collapse').click(toggleDicePool);
-    // Summary Folding
-    function hideSummary(){
-      hideSection($('#summary-collapse'), $('#summary'), $('#summary-box'), "🚧Summary🚧");
-      summaryShown = false;
-    }
-    function showSummary(){
-      showSection($('#summary-collapse'), $('#summary'), $('#summary-box'), "🚧Summary🚧");
-      hideDicePool();
-      hideRolls();
-      hideGraphs();
-      summaryShown = true;
-    }
-    function toggleSummary(){summaryShown ? hideSummary() : showSummary();}
-    $('#summary-collapse').click(toggleSummary);
-    // Graphs Folding
-    function hideGraphs(){
-      hideSection($('#graphs-collapse'), $('#graphs'), $('#graphs-box'), "🚧Charts🚧");
-      graphsShown = false;
-    }
-    function showGraphs(){
-      showSection($('#graphs-collapse'), $('#graphs'), $('#graphs-box'), "🚧Charts🚧");
-      hideDicePool();
-      hideSummary();
-      hideRolls();
-      graphsShown = true;
-    }
-    // Tables Folding
-    function hideRolls(){
-      hideSection($('#rolls-collapse'), $('#rolls'), $('#rolls-box'), "🚧Tables🚧");
-      rollsShown = false;
-    }
-    function showRolls(){
-      showSection($('#rolls-collapse'), $('#rolls'), $('#rolls-box'), "🚧Tables🚧");
-      hideDicePool();
-      hideSummary();
-      hideGraphs();
-      rollsShown = true;
-    }
-    function toggleRolls(){rollsShown ? hideRolls() : showRolls();}
-    $('#rolls-collapse').click(toggleRolls);
-    function toggleGraphs(){graphsShown ? hideGraphs() : showGraphs();}
-    $('#graphs-collapse').click(toggleGraphs);
-
-    //SECTION: CHART TAB SWITCHING
-    function showChart($chartBtn, $chartBox){
-      hideCharts();
-      $chartBox.show();
+    function highlightChartButton($chartBtn){
+      resetChartButtons();
       $chartBtn.removeClass('btn-success');
       $chartBtn.removeClass('bg-success');
       $chartBtn.addClass('btn-outline-success');
@@ -1356,41 +1291,93 @@
       $chartBtn.css('z-index', '2');
       $chartBtn.css('position', 'relative');
       $chartBtn.css('top', '1px');
+
+      //$chartBtn.removeClass('focus');
+      // instead of removing the focus class,
+      // I will remove only the bottom border that bootstrap has by default on focused buttons
+      // This should only affect the bottom border of the box-shadow property of bootstrap's button:focus css class.
+
+
     }
-    function hideCharts(){
-      CHART_BOXES.forEach(element => {
-        element.hide();
+    function resetChartButtons(){
+      _.each(CHART_BUTTONS, function(button) {
+        button.removeClass('btn-outline-success');
+        button.removeClass('disabled');
+        button.removeClass('bg-light');
+        button.addClass('btn-success');
+        button.addClass('bg-success');
+        button.css('z-index', '1');
+        button.css('position', 'static');
+        button.css('top', '0px');
       });
     }
 
+    function spinner(){
+      let $box=$('spinner-box');
+      let $image=$('spinner-image');
+      if (spinnerActive){
+        $image.hide();
+        clearInterval(spinnerIntervalID);
+        spinnerActive = false;
+        return;
+      }
+
+      let images = [];
+      for (let i = 1; i <= 8; i++){
+        images.push(`images/spinning_saber/spinning_saber.${i.toString().padStart(3, '0')}.png`);
+      }
+
+      let i = 0;
+
+      spinnerIntervalID = setInterval(() => {
+        $image.attr('src', images[i]);
+        i++;
+        i = i >= images.length ? i = 0: i;
+      }, SPINNER_SPEED);
+
+      $image.show();
+      spinnerActive = true;
+      return;
+    }
+
+    _.forEach(CHART_BUTTONS, (button, key) => {
+      button.on('click', () => {
+        currentChart.fadeOut(CHART_FADE_SPEED, CHART_FADE_EASING, () => {
+          currentChart = CHART_BOXES[key];
+          currentChart.fadeIn(CHART_FADE_SPEED, CHART_FADE_EASING);
+        });
+        highlightChartButton(button);
+      });
+    });
     
     //SECTION: FINISHED INITIAL LOADING
-    toggleDicePool(true);
+    SECTION.dicepool.$box.show();
+    //toggleDicePoolSection(true);
     initialized = true;
   });
 </script>
 </head>
-<body class="bg-dark">
+<body class="bg-dark" >
   <!--Main Container-->
   <div class="container-fluid bg-dark" style="width:60%">
     <!--Header-->
     <div class="bg-dark" style="width:100%; border-radius: 0px 0px 10px 10px;">
-      <div class="display-4 text-center text-light">Dice Pool Likelihood Calculator</div>
+      <div class="display-4 text-center text-light">DICE TRIALS</div>
       <div class="h3 text-center text-light"><i>A Monte Carlo simulator for Star Wars FFG & Gensys dice systems</i></div>
       <div class="h6 text-center text-secondary"><i>🚧UNDER CONSTRUCTION. Last Update: July 9th, 2023🚧</i></div>
       <!-- <div class="text-center text-secondary"><i>See also: <a href="https://docs.google.com/spreadsheets/d/1ZlrbbYkT4C5emlW8wFVDMLSh2nv6tNJTk5SwY_LUc6k/copy?usp=sharing" data-toggle="tooltip" data-placement="top" title="This is a sheet detailing the odds of getting any given result from any number of dice.">Google Sheets - Dice Probability Breakdown🔗</a></i></div> -->
       <!--Icon Strip-->
-      <div class="d-flex justify-content-center mb-2 mt-2 bg-secondary">
+      <div class="d-flex justify-content-center p-1 mb-2 mt-2 bg-dark" style="border-radius: 20px; box-shadow: 0px 10px 5px 3px rgba(0,0,0,0.5) inset;">
         <div id="dice-icon-strip"></div>
       </div>
     </div>
-    <div id="dice-pool-box" class="mt-2 mb-1">
+    <div id="dicepool-box" class="mt-2 mb-1">
       <!--Dice Pool & Trials Collapser-->
       <div style="width:100%;">
-        <button id="dice-pool-collapse" class="btn btn-warning btn-lg btn-block border-top " style="width:100%;">Dice Pool ▼</i></button>
+        <button id="dicepool-btn" class="btn btn-warning btn-lg btn-block border-top " style="width:100%;">Dice Pool ▼</i></button>
       </div>
       <!--Dice Pool & Trials-->
-      <div id="dice-pool" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black"> 
+      <div id="dicepool" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black;"> 
         <!-- Dice Pool -->
         <div class="row pt-2">
           <!-- Proficiency -->
@@ -1539,7 +1526,7 @@
     <div id="summary-box" class="mt-2 mb-1">
       <!--Summary Collapser-->
       <div style="width:100%;">
-        <button id="summary-collapse" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Summary</i></button>
+        <button id="summary-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Summary</i></button>
       </div>
       <!--Summary-->
       <div id="summary" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
@@ -1582,84 +1569,60 @@
         </div>
       </div>
     </div>
-    <div id="graphs-box" class="mt-2 mb-1">
-      <!--Graphs Collapser-->
+    <div id="charts-box" class="mt-2 mb-1">
+      <!--Charts Collapser-->
       <div style="width:100%;">
-        <button id="graphs-collapse" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">🚧Charts🚧 ▼</i></button>
+        <button id="charts-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Charts</i></button>
       </div>
       <!--Charts-->
-      <div id="graphs" class="bg-light text-light p-2" style="border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
+      <div id="charts" class="bg-dark text-light p-2" style="border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
         <!--Chart Tabs-->
         <div class="row" >
-          <span class="col-2"><button id="total-chart-btn"            class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total       </b></button></span>
-          <span class="col-2"><button id="total-percent-chart-btn"    class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total %     </b></button></span>
-          <span class="col-2"><button id="adjusted-chart-btn"         class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Adjusted    </b></button></span>
-          <span class="col-2"><button id="adjusted-percent-chart-btn" class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Adjusted %  </b></button></span>
+          <span class="col-2"><button id="netPercent-chart-btn"      class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Net %          </b></button></span>
+          <span class="col-2"><button id="totalPercent-chart-btn"    class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total %        </b></button></span>
+          <span class="col-2"><button id="net-chart-btn"              class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Net            </b></button></span>
+          <span class="col-2"><button id="total-chart-btn"            class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total          </b></button></span>
+          <span class="col-2"><button id="stacked-chart-btn"          class="disabled btn btn-secondary border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 0.65;"><b>🚧 Stacked % 🚧   </b></button></span>
         </div>
+        <!--Highcharts Container-->
         <div class="bg-light border border-success" style="width:100%; border-radius: 0px 10px 10px 10px; z-index: 1; box-shadow: 0px 1px 10px 1px green;">
+          <!-- Net % Chart -->
+          <div id="netPercent-chart-box">
+            <div id="highchart-netPercent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
+          </div>
+          <!-- Total % Chart -->
+          <div id="totalPercent-chart-box">
+            <div id="highchart-totalPercent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
+          </div>
+          <!-- Net Chart -->
+          <div id="net-chart-box">
+            <div id="highchart-net" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
+          </div>
           <!-- Total Chart -->
           <div id="total-chart-box">
             <div id="highchart-total" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-            <div class="row">
-              <div class="col-1"></div>
-              <div class="col">
-                <div class="text-secondary text-right">ℹ <i>You can view graphs with different information by clicking the green tabs near the top.</i></div>
-                <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
-                <div class="text-secondary text-right">ℹ <i>While zoomed in, hold shift and then click and drag to pan.</i></div>
-                <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart legend will remove that outcome from the chart view.</i></div>
-              </div>
-              <div class="col-1"></div>
-            </div>
           </div>
-          <!-- Total % Chart -->
-          <div id="total-percent-chart-box">
-            <div id="highchart-total-percent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-            <div class="row">
-              <div class="col-1"></div>
-              <div class="col">
-                <div class="text-secondary text-right">ℹ <i>You can view graphs with different information by clicking the green tabs near the top.</i></div>
-                <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
-                <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart key will remove that outcome from the chart view.</i></div>
-              </div>
-              <div class="col-1"></div>
+          <!-- Chart Tips-->
+          <div class="row">
+            <div class="col-1"></div>
+            <div class="col">
+              <div class="text-secondary text-right">ℹ <i>You can view charts with different information by clicking the green tabs near the top.</i></div>
+              <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
+              <div class="text-secondary text-right">ℹ <i>While zoomed in, hold shift and then click and drag to pan.</i></div>
+              <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart legend will remove that outcome from the chart view.</i></div>
             </div>
-          </div>
-          <!-- Adjusted Chart -->
-          <div id="adjusted-chart-box">
-            <div id="highchart-adjusted" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-            <div class="row">
-              <div class="col-1"></div>
-              <div class="col">
-                <div class="text-secondary text-right">ℹ <i>You can view graphs with different information by clicking the green tabs near the top.</i></div>
-                <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
-                <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart key will remove that outcome from the chart view.</i></div>
-              </div>
-              <div class="col-1"></div>
-            </div>
-          </div>
-          <!-- Adjusted % Chart -->
-          <div id="adjusted-percent-chart-box">
-            <div id="highchart-adjusted-percent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-            <div class="row">
-              <div class="col-1"></div>
-              <div class="col">
-                <div class="text-secondary text-right">ℹ <i>You can view graphs with different information by clicking the green tabs near the top.</i></div>
-                <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
-                <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart key will remove that outcome from the chart view.</i></div>
-              </div>
-              <div class="col-1"></div>
-            </div>
+            <div class="col-1"></div>
           </div>
         </div>
       </div>
     </div>
-    <div id="rolls-box" class="mt-2 mb-1">
-      <!--Rolls Collapser-->
+    <div id="tables-box" class="mt-2 mb-1">
+      <!--Tables Collapser-->
       <div style="width:100%;">
-        <button id="rolls-collapse" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Rolls Table ▼</button>
+        <button id="tables-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Tables</button>
       </div>
-      <!--Rolls Table-->
-      <div id="rolls" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
+      <!--Tables-->
+      <div id="tables" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
         <!-- Results Table -->
         <div class="d-flex justify-content-center">
           <table id="results-table" class="table table-striped table-bordered text-light bg-dark" style="width: 90%;">
@@ -1755,6 +1718,9 @@
       </div>
 
     </div>
+  </div>
+  <div id="spinner-box" style="position: relative; z-index: 3;">
+    <image id="spinner-image" src="images/spinning_saber/spinning_saber.001.png" width="500">
   </div>
 </body>
 </html>
