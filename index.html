@@ -1,1726 +1,520 @@
 <!DOCTYPE html>
-c<html>
+<html>
+
 <head>
-<!-- Bootstrap 5.0.2 -->
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-  integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-  crossorigin="anonymous"
->
-<!-- Font Awesome 6.3.0 -->
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
-  integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer"
-/>
-<!-- Custom CSS -->
-<style>
-  .btn-check:focus+.btn-outline-success, .btn-outline-success:focus {
-    /* box-shadow: 0 0 0 0.25rem rgba(25,135,84,.5); */
-    box-shadow: none;
-  }
-</style>
-<!-- jQuery 3.6.3-->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<!--Lodash 4.17.20-->
-<script src = "https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js" type = "text/JavaScript" ></script>
-<!-- Highchart 10 -->
-</script><script src="https://code.highcharts.com/10/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/mouse-wheel-zoom.js"></script>
-<!-- DataTables -->
-<script src="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"></script>
-<script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
-<script src="src/tests.js"></script>
-<script>
-  timeMeasure=(callback, label='<Function Name>')=>{
-    let start = performance.now();
-    callback();
-    let end = performance.now();
-    console.log(`${label} took ${(end-start).toFixed(0)} milliseconds.`);
-  }
+    <!--Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js" type="text/JavaScript"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <script src="https://code.highcharts.com/modules/mouse-wheel-zoom.js"></script>
+    <script src="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css"></script>
+    <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
 
-  class DieFace {
-    constructor(face) {
-      this.face = face;
-      this.possibleOutcomes = {
-        "BLANK":              {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "SUCCESS":            {'s': 1, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "ADVANTAGE":          {'s': 0, 'a': 1, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "SUCCESS ADVANTAGE":  {'s': 1, 'a': 1, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "DOUBLE SUCCESS":     {'s': 2, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "DOUBLE ADVANTAGE":   {'s': 0, 'a': 2, 'f': 0, 't': 0, 'T': 0, 'D': 0},
-        "TRIUMPH":            {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 1, 'D': 0},
-        "FAILURE":            {'s': 0, 'a': 0, 'f': 1, 't': 0, 'T': 0, 'D': 0},
-        "THREAT":             {'s': 0, 'a': 0, 'f': 0, 't': 1, 'T': 0, 'D': 0},
-        "FAILURE THREAT":     {'s': 0, 'a': 0, 'f': 1, 't': 1, 'T': 0, 'D': 0},
-        "DOUBLE FAILURE":     {'s': 0, 'a': 0, 'f': 2, 't': 0, 'T': 0, 'D': 0},
-        "DOUBLE THREAT":      {'s': 0, 'a': 0, 'f': 0, 't': 2, 'T': 0, 'D': 0},
-        "DESPAIR":            {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 1},
-      }
-      this.value = this.possibleOutcomes[face.toUpperCase()];
-    }
-  }
-  class Modifiers {
-    constructor (modList) {
-      this['s'] = modList[0];
-      this['a'] = modList[1];
-      this['f'] = modList[2];
-      this['t'] = modList[3];
-      this['T'] = modList[4];
-      this['D'] = modList[5];
-    }
-  }
-  class Die {
-    constructor(numFaces, name) {
-      this.result;
-      this.numFaces = numFaces;
-      this.name = name;
-      this.trueValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-      this.cancelledValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-      this.success = 0;
-      this.advantage = 0;
-    }
-    roll() {
-      this.result = this.dieFaces[Math.floor(Math.random() * this.dieFaces.length)];
-    }
-    toString() {
-      if (this.result != undefined){
-        let str = "";
-        str += this.name + '.'.repeat(12 - this.name.length);
-        str += '.'.repeat(20 - this.result.face.length) + this.result.face;
-        return str;
-      } else {
-        return this.name;
-      }
-    }
-  }
-  
-  class Proficiency extends Die {
-    constructor() {
-      super(12, "Proficiency");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("SUCCESS"),
-        new DieFace("SUCCESS"),
-        new DieFace("ADVANTAGE"),
-        new DieFace("SUCCESS ADVANTAGE"),
-        new DieFace("SUCCESS ADVANTAGE"),
-        new DieFace("SUCCESS ADVANTAGE"),
-        new DieFace("DOUBLE SUCCESS"),
-        new DieFace("DOUBLE SUCCESS"),
-        new DieFace("DOUBLE ADVANTAGE"),
-        new DieFace("DOUBLE ADVANTAGE"),
-        new DieFace("TRIUMPH"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
-  class Ability extends Die {
-    constructor() {
-      super(8, "Ability");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("SUCCESS"),
-        new DieFace("SUCCESS"),
-        new DieFace("ADVANTAGE"),
-        new DieFace("ADVANTAGE"),
-        new DieFace("SUCCESS ADVANTAGE"),
-        new DieFace("DOUBLE SUCCESS"),
-        new DieFace("DOUBLE ADVANTAGE"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
-  class Boost extends Die {
-    constructor() {
-      super(6, "Boost");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("BLANK"),
-        new DieFace("SUCCESS"),
-        new DieFace("ADVANTAGE"),
-        new DieFace("SUCCESS ADVANTAGE"),
-        new DieFace("DOUBLE ADVANTAGE"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
-  class Challenge extends Die {
-    constructor() {
-      super(12, "Challenge");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("FAILURE"),
-        new DieFace("FAILURE"),
-        new DieFace("THREAT"),
-        new DieFace("THREAT"),
-        new DieFace("FAILURE THREAT"),
-        new DieFace("FAILURE THREAT"),
-        new DieFace("DOUBLE FAILURE"),
-        new DieFace("DOUBLE FAILURE"),
-        new DieFace("DOUBLE THREAT"),
-        new DieFace("DOUBLE THREAT"),
-        new DieFace("DESPAIR"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
-  class Difficulty extends Die {
-    constructor() {
-      super(8, "Difficulty");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("FAILURE"),
-        new DieFace("THREAT"),
-        new DieFace("THREAT"),
-        new DieFace("THREAT"),
-        new DieFace("FAILURE THREAT"),
-        new DieFace("DOUBLE FAILURE"),
-        new DieFace("DOUBLE THREAT"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
-  class Setback extends Die {
-    constructor() {
-      super(6, "Setback");
-      this.dieFaces = [
-        new DieFace("BLANK"),
-        new DieFace("BLANK"),
-        new DieFace("FAILURE"),
-        new DieFace("FAILURE"),
-        new DieFace("THREAT"),
-        new DieFace("THREAT"),
-      ];
-      this.numFaces = this.dieFaces.length;
-    }
-  }
+    <!-- Custom -->
+    <link rel="stylesheet" href="./css/custom.css">
+    <!-- Classes -->
+    <script src="./src/Util.js"></script>
+    <script src="./src/classes/DieFace.js"></script>
+    <script src="./src/classes/Modifiers.js"></script>
+    <script src="./src/classes/Die.js"></script>
+    <script src="./src/classes/DiceTypes/Proficiency.js"></script>
+    <script src="./src/classes/DiceTypes/Ability.js"></script>
+    <script src="./src/classes/DiceTypes/Boost.js"></script>
+    <script src="./src/classes/DiceTypes/Challenge.js"></script>
+    <script src="./src/classes/DiceTypes/Difficulty.js"></script>
+    <script src="./src/classes/DiceTypes/Setback.js"></script>
+    <script src="./src/classes/Dice.js"></script>
+    <script src="./src/classes/DicePool.js"></script>
+    <script src="./src/classes/DiceTrial.js"></script>
+    <!-- Sections -->
+    <script src="./src/components/Sections/SectionController.js"></script>
+    <link rel="stylesheet" href="./src/components/Sections/Sections.css">
+    <!-- Subsections -->
+    <script src="./src/components/Sections/Subsections/Subsections.js"></script>
+    <link rel="stylesheet" href="./src/components/Sections/Subsections/Subsection.css">
+    <!--Spinner-->
+    <script src="./src/components/Spinner/SpinnerController.js"></script>
+    <link rel="stylesheet" href="./src/components/Spinner/Spinner.css">
+    <!-- Dice Pool Input-->
+    <script src="./src/components/Sections/DicePool/Input/SymbolInputController.js"></script>
+    <!-- <link rel="stylesheet" href="./src/components/DicePool/Input/DicePoolInput.css"> -->
+    <!-- Dice Pool -->
+    <script src="./src/components/Sections/DicePool/DicePoolController.js"></script>
+    <!-- <link rel="stylesheet" href="./src/components/DicePool/DicePool.css"> -->
 
-  class Dice {
-    constructor (diceCountArray) {
-      this["Proficiency"] = diceCountArray[0],
-      this["Ability"]     = diceCountArray[1],
-      this["Boost"]       = diceCountArray[2],
-      this["Challenge"]   = diceCountArray[3],
-      this["Difficulty"]  = diceCountArray[4],
-      this["Setback"]     = diceCountArray[5]
-    }
-  }
-  class DicePool {
-    constructor(diceCount, modifiers = null) {
-      this.diceCount = diceCount;
-      this.modifiers = modifiers;
-      this.emptyResults = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0}; 
-      this.dice;
-      this.totalCombos;
-      this.results;
-      this.totalValues;
-      this.netValues;
-      this.success;
-      this.advantage;
-      this.poolSummary;
-      this.setDice=()=>{
-        this.dice = [];
-        for (var i = 0; i < this.diceCount['Proficiency']; i++) this.dice.push(new Proficiency());
-        for (var i = 0; i < this.diceCount['Ability']; i++) this.dice.push(new Ability());
-        for (var i = 0; i < this.diceCount['Boost']; i++) this.dice.push(new Boost());
-        for (var i = 0; i < this.diceCount['Challenge']; i++) this.dice.push(new Challenge());
-        for (var i = 0; i < this.diceCount['Difficulty']; i++) this.dice.push(new Difficulty());
-        for (var i = 0; i < this.diceCount['Setback']; i++) this.dice.push(new Setback());
-        let combos = 1;
-        for (var i = 0; i < this.dice.length; i++) combos *= this.dice[i].numFaces;
-        this.totalCombos = combos;
-      }
-
-      this.setDice();
-    }
-    roll() {
-      this.results = [];
-      this.totalValues = this.netValues = null;
-      this.poolSummary = this.advantage = this.success = null;
-      for (var i = 0; i < this.dice.length; i++) {
-        this.dice[i].roll();
-        this.results.push(this.dice[i].result);
-      }
-      this.setTotalValues();
-      this.setNetValues();
-      this.setSuccess();
-      this.setAdvantage();
-      this.setPoolSummary();
-    }
-    setTotalValues() {
-      this.totalValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-      for (let i = 0; i < this.results.length; i++) {
-        for (let key in this.totalValues){
-          this.totalValues[key] += this.results[i].value[key];
-      }}
-      if (this.modifiers != undefined){
-        let combined = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-        for (let key in combined){
-          combined[key] = this.totalValues[key] + this.modifiers[key];
-        }
-        this.totalValues = combined;
-      }}
-    setNetValues(){
-      this.netValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-      // The best way to DRY this out would be to further connect successes/failures and advantages/threats on a more fundamental level.
-      // In such a case, the effort required to create that connection would be more than the effort required to just write this out.
-      this.netValues['s'] = this.totalValues['s'] > this.totalValues['f'] ? this.totalValues['s'] - this.totalValues['f'] : 0;
-      this.netValues['a'] = this.totalValues['a'] > this.totalValues['t'] ? this.totalValues['a'] - this.totalValues['t'] : 0;
-      this.netValues['f'] = this.totalValues['f'] > this.totalValues['s'] ? this.totalValues['f'] - this.totalValues['s'] : 0;
-      this.netValues['t'] = this.totalValues['t'] > this.totalValues['a'] ? this.totalValues['t'] - this.totalValues['a'] : 0;
-      this.netValues['T'] = this.totalValues['T'];
-      this.netValues['D'] = this.totalValues['D'];
-      //Note that the netValues are derived from the totalValues, not the results.
-      //This means we don't need to redo the modifier math, since it's already been done.
-    }
-    setSuccess() {
-      this.success = this.getNetValues()['s'] > 0;
-    }
-    setAdvantage() {
-      this.advantage = this.getNetValues()['a'] > 0;
-    }
-    setPoolSummary(){
-      this.poolSummary = "";
-      let str = "";
-      let successes = this.netValues['s'];
-      let advantages = this.netValues['a'];
-      let triumphs = this.netValues['T'];
-      let failures = this.netValues['f'];
-      let threats = this.netValues['t'];
-      let despairs = this.netValues['D'];
-      if (successes > 0) str += successes + " SUCCESS" + (successes > 1 ? "ES" : "");
-      if (advantages > 0) str += (str.length > 0 ? ", " : "") + advantages + " ADVANTAGE" + (advantages > 1 ? "S" : "");
-      if (triumphs > 0) str += (str.length > 0 ? ", " : "") + triumphs + " TRIUMPH" + (triumphs > 1 ? "S" : "");
-      if (failures > 0) str += (str.length > 0 ? ", " : "") + failures + " FAILURE" + (failures > 1 ? "S" : "");
-      if (threats > 0) str += (str.length > 0 ? ", " : "") + threats + " THREAT" + (threats > 1 ? "S" : "");
-      if (despairs > 0) str += (str.length > 0 ? ", " : "") + despairs + " DESPAIR" + (despairs > 1 ? "S" : "");
-      this.poolSummary = str;
-    }
-
-    getDiceCount=()=>       this.diceCount
-    getModifiers=()=>       this.modifiers
-    getDice=()=>            this.dice
-    getTotalCombos=()=>     this.totalCombos
-    getResults=()=>         this.results
-    getTotalValues=()=>     this.totalValues
-    getNetValues=()=>       this.netValues;
-    getSuccess=()=>         this.success
-    getAdvantage=()=>       this.advantage;
-    getPoolSummary=()=>     this.poolSummary
-    toString() {
-      let str = "";
-      for (var i = 0; i < this.dice.length; i++) {
-        str += this.dice[i].toString() + "\n";
-      }
-      return str;
-    }
-  }
-  class DiceTrial {
-    constructor(dicePool, numRolls, measure){
-      this.dicePool = dicePool;
-      this.numRolls = numRolls;
-      this.measure = measure ?? false;
-      this.trials = [];
-      this.results = [];
-      this.cancelledResults = [];
-      this.tabulatedResults;
-      this.tabulatedResultsPercents
-      this.cancelledTabulatedResults;
-      this.cancelledTabulatedResultsPercents;
-      this.totalValues;
-      this.averageValues;
-      this.trialSummary;
-      this.cancelledTotalValues;
-      this.cancelledAverageValues;
-      this.cancelledtrialSummary;
-      this.aggregateResults=()=>{
-        for (var i = 0; i < this.numRolls; i++) {
-          this.dicePool.roll();
-          //this.trials.push(this.dicePool.results);
-          this.results.push(this.dicePool.getTotalValues());
-          this.cancelledResults.push(this.dicePool.getNetValues());
-        }
-      }
-    }
-    runTrial=()=> this.measure ? timeMeasure(this.aggregateResults, 'DiceTrial.aggregateResults()') : this.aggregateResults();
-    
-    setTabulatedResults(){
-      //this function aims to get the magnitude of occurrenses of each result
-      //this will be used to construct a bell curve or histogram of results
-      //for example, each roll can have a number of 'successes'
-      //this function will tally the number of times 1 success was rolled, 2 successes, 3 successes, etc.
-      let tabulated = {'s': {}, 'a': {}, 'f': {}, 't': {}, 'T': {}, 'D': {}};
-      //for each result in the results array
-      for (let i = 0; i < this.results.length; i++) {
-        //for each key in the result
-        for (let key in this.results[i]) {
-          //if the key is in the tabulated object, add the value to the key
-          if (tabulated[key][this.results[i][key]] == null) {
-            tabulated[key][this.results[i][key]] = 1;
-          } else {
-            tabulated[key][this.results[i][key]]++;
-      }}}
-
-      //get the max occurrence
-      let occurrences = [];
-      for (let outcome in tabulated) { occurrences.push(Object.keys(tabulated[outcome]));}
-      occurrences = [...new Set(occurrences.flat())];
-      let max = Math.max(...occurrences);
-      //use the max occurrence to ensure that the tabulated object has a key for every possible outcome
-      for (let outcome in tabulated) {
-        for (let i = 0; i <= max; i++) {
-          if (tabulated[outcome][i] == null) {
-            tabulated[outcome][i] = 0;
-      }}}
-
-      this.tabulatedResults = tabulated;
-    }
-    setTabulatedResultsPercents(){
-      this.tabulatedResults ?? this.setTabulatedResults();
-      // this function takes the tabulated results and converts the values to percents
-      // for each key of the tabulated results, there is a dictionry of values
-      // the key of that dictionary is the quantity of a given outcome for any given roll,
-      // and the value of that dictionary is the number of times that quantity of outcome was rolled
-      // this function will convert the values of the dictionary to percents
-      // for example, if there are 200 rolls, and 50 of them had 2 successes,
-      // the value of the ['s'] dictionary for the key '2' will be 25% (50/200)
-      let tabulatedPercents = {'s': {0:0}, 'a': {0:0}, 'f': {0:0}, 't': {0:0}, 'T': {0:0}, 'D': {0:0}};
-      for (var key in this.tabulatedResults) {
-        tabulatedPercents[key] = {};
-        for (var key2 in this.tabulatedResults[key]) {
-          tabulatedPercents[key][key2] = (this.tabulatedResults[key][key2] / this.numRolls) * 100;
-        }
-      }
-      this.tabulatedResultsPercents = tabulatedPercents;
-    }
-    setCancelledTabulatedResults(){
-      //this function will work in almost the exact same way as setTabulatedResults
-      //with the exception that it will be getting the cancelledValues instead of the trueValues of each roll
-      let netTabulated = {'s': {}, 'a': {}, 'f': {}, 't': {}, 'T': {}, 'D': {}};
-      for (var i = 0; i < this.cancelledResults.length; i++) {
-        for (var key in this.cancelledResults[i]) {
-          if (netTabulated[key][this.cancelledResults[i][key]] == null) {
-            netTabulated[key][this.cancelledResults[i][key]] = 1;
-          } else {
-            netTabulated[key][this.cancelledResults[i][key]]++;
-      }}}
-
-      //get the max occurrence
-      let occurrences = [];
-      for (let outcome in netTabulated) {
-        occurrences.push(Object.keys(netTabulated[outcome]));
-      }
-      occurrences = [...new Set(occurrences.flat())];
-      let max = Math.max(...occurrences);
-      //use the max occurrence to ensure that the cancelledTabulated object has a key for every possible outcome
-      for (let outcome in netTabulated) {
-        for (let i = 0; i <= max; i++) {
-          if (netTabulated[outcome][i] == null) {
-            netTabulated[outcome][i] = 0;
-      }}}
-
-
-      this.cancelledTabulatedResults = netTabulated;
-    }
-    setCancelledTabulatedResultsPercents(){
-      // this function will work like setTabulatedResultsPercents, but with the cancelledTabulatedResults
-      this.cancelledTabulatedResults ?? this.setCancelledTabulatedResults();
-      let tabulatedPercents = {};
-      for (var key in this.cancelledTabulatedResults) {
-        tabulatedPercents[key] = {};
-        for (var key2 in this.cancelledTabulatedResults[key]) {
-          tabulatedPercents[key][key2] = (this.cancelledTabulatedResults[key][key2] / this.numRolls) * 100;
-        }
-      }
-      this.cancelledTabulatedResultsPercents = tabulatedPercents;
-    }
-    setTotalValues(){
-      let totalValues = {'s': 0, 'a': 0, 'f': 0, 't': 0, 'T': 0, 'D': 0};
-      for (var i = 0; i < this.results.length; i++) {
-        for (let key in totalValues) {
-          totalValues[key] += this.results[i][key];
-      }}
-      this.totalValues = totalValues;
-    }
-    setAverageValues(){
-      (this.totalValues == undefined) && this.setTotalValues();
-      this.averageValues = {'s': 0.0, 'a': 0.0, 'f': 0.0, 't': 0.0, 'T': 0.0, 'D': 0.0};
-      for (var key in this.totalValues) {
-        this.averageValues[key] = this.totalValues[key] / this.numRolls;
-      }
-    }
-    setTrialSummary(){
-      (this.averageValues == undefined) && this.setAverageValues();
-      this.trialSummary = "";
-      let str = `For ${this.numRolls} rolls, the average results are:\n`;
-      let successes   = this.averageValues['s'].toFixed(3);
-      let advantages  = this.averageValues['a'].toFixed(3);
-      let triumphs    = this.averageValues['T'].toFixed(3);
-      let failures    = this.averageValues['f'].toFixed(3);
-      let threats     = this.averageValues['t'].toFixed(3);
-      let despairs    = this.averageValues['D'].toFixed(3);
-      if (successes > 0) str += successes + " SUCCESS" + (successes > 1 ? "ES" : "");
-      if (advantages > 0) str += (str.length > 0 ? ", " : "") + advantages + " ADVANTAGE" + (advantages > 1 ? "S" : "");
-      if (triumphs > 0) str += (str.length > 0 ? ", " : "") + triumphs + " TRIUMPH" + (triumphs > 1 ? "S" : "");
-      if (failures > 0) str += (str.length > 0 ? ", " : "") + failures + " FAILURE" + (failures > 1 ? "S" : "");
-      if (threats > 0) str += (str.length > 0 ? ", " : "") + threats + " THREAT" + (threats > 1 ? "S" : "");
-      if (despairs > 0) str += (str.length > 0 ? ", " : "") + despairs + " DESPAIR" + (despairs > 1 ? "S" : "");
-      this.trialSummary = str;
-    }
-    setCancelledTotalValues(){
-      this.cancelledTotalValues = {'s': 0.0, 'a': 0.0, 'f': 0.0, 't': 0.0, 'T': 0.0, 'D': 0.0};
-      this.cancelledTotalValues['s'] = this.totalValues['s'] > this.totalValues['f'] ? this.totalValues['s'] - this.totalValues['f'] : 0;
-      this.cancelledTotalValues['a'] = this.totalValues['a'] > this.totalValues['t'] ? this.totalValues['a'] - this.totalValues['t'] : 0;
-      this.cancelledTotalValues['f'] = this.totalValues['f'] > this.totalValues['s'] ? this.totalValues['f'] - this.totalValues['s'] : 0;
-      this.cancelledTotalValues['t'] = this.totalValues['t'] > this.totalValues['a'] ? this.totalValues['t'] - this.totalValues['a'] : 0;
-      this.cancelledTotalValues['T'] = this.totalValues['T'];
-      this.cancelledTotalValues['D'] = this.totalValues['D'];
-    }
-    setCancelledAverageValues(){
-      (this.averageValues == undefined) && this.setAverageValues();
-      this.cancelledAverageValues = {'s': 0.0, 'a': 0.0, 'f': 0.0, 't': 0.0, 'T': 0.0, 'D': 0.0};
-      this.cancelledAverageValues['s'] = this.averageValues['s'] > this.averageValues['f'] ? this.averageValues['s'] - this.averageValues['f'] : 0;
-      this.cancelledAverageValues['a'] = this.averageValues['a'] > this.averageValues['t'] ? this.averageValues['a'] - this.averageValues['t'] : 0;
-      this.cancelledAverageValues['f'] = this.averageValues['f'] > this.averageValues['s'] ? this.averageValues['f'] - this.averageValues['s'] : 0;
-      this.cancelledAverageValues['t'] = this.averageValues['t'] > this.averageValues['a'] ? this.averageValues['t'] - this.averageValues['a'] : 0;
-      this.cancelledAverageValues['T'] = this.averageValues['T'];
-      this.cancelledAverageValues['D'] = this.averageValues['D'];
-    }
-    setCancelledTrialSummary(){
-      (this.cancelledAverageValues == undefined) && this.setCancelledAverageValues();
-      this.cancelledTrialSummary = "";
-      let str = `For ${this.numRolls} rolls, adjusted for cross-cancelling, the average results are:\n`;
-      let successes   = this.cancelledAverageValues['s'].toFixed(3);
-      let advantages  = this.cancelledAverageValues['a'].toFixed(3);
-      let triumphs    = this.cancelledAverageValues['T'].toFixed(3);
-      let failures    = this.cancelledAverageValues['f'].toFixed(3);
-      let threats     = this.cancelledAverageValues['t'].toFixed(3);
-      let despairs    = this.cancelledAverageValues['D'].toFixed(3);
-      if (successes > 0) str += successes + " SUCCESS" + (successes > 1 ? "ES" : "");
-      if (advantages > 0) str += (str.length > 0 ? ", " : "") + advantages + " ADVANTAGE" + (advantages > 1 ? "S" : "");
-      if (triumphs > 0) str += (str.length > 0 ? ", " : "") + triumphs + " TRIUMPH" + (triumphs > 1 ? "S" : "");
-      if (failures > 0) str += (str.length > 0 ? ", " : "") + failures + " FAILURE" + (failures > 1 ? "S" : "");
-      if (threats > 0) str += (str.length > 0 ? ", " : "") + threats + " THREAT" + (threats > 1 ? "S" : "");
-      if (despairs > 0) str += (str.length > 0 ? ", " : "") + despairs + " DESPAIR" + (despairs > 1 ? "S" : "");
-      this.cancelledTrialSummary = str;
-    }
-
-    getTrials=()=> this.trials
-    getNumRolls=()=> this.numRolls
-    getTabulatedResults(){
-      this.tabulatedResults ?? this.setTabulatedResults();
-      return this.tabulatedResults;
-    }
-    getTabulatedResultsPercents(){
-      this.tabulatedResultsPercents ?? this.setTabulatedResultsPercents();
-      return this.tabulatedResultsPercents;
-    }
-    getCancelledTabulatedResults(){
-      this.cancelledTabulatedResults ?? this.setCancelledTabulatedResults();
-      return this.cancelledTabulatedResults;
-    }
-    getCancelledTabulatedResultsPercents(){
-      this.cancelledTabulatedResultsPercents ?? this.setCancelledTabulatedResultsPercents();
-      return this.cancelledTabulatedResultsPercents;
-    }
-    getTotalValues(){
-      this.totalValues ?? this.setTotalValues();
-      return this.totalValues;
-    }
-    getAverageValues(){
-      this.averageValues ?? this.setAverageValues();
-      return this.averageValues;
-    }
-    getTrialSummary(){
-      this.trialSummary ?? this.setTrialSummary();
-      return this.trialSummary;
-    }
-    getCancelledTotalValues(){
-      this.cancelledTotalValues ?? this.setCancelledTotalValues();
-      return this.cancelledTotalValues;
-    }
-    getCancelledAverageValues(){
-      this.cancelledAverageValues ?? this.setCancelledAverageValues();
-      return this.cancelledAverageValues;
-    }
-    getCancelledTrialSummary(){
-      this.cancelledTrialSummary ?? this.setCancelledTrialSummary();
-      return this.cancelledTrialSummary;
-    }
-  }
-
-/*   // DieFace class tests
-  console.log("\n\nDieFace tests __________________________");
-  var dieFace = new DieFace("FAILURE");
-  console.log(dieFace.value);
- */
-/*   // Boost class tests
-  var boost = new Boost();
-  console.log("\n\nBoost tests __________________________");
-  console.log(boost.dieFaces);
-  console.log(boost.numFaces);
-  console.log(boost.result); //result before roll
-  console.log(boost.toString()); //boost.toString();
-  boost.roll();
-  console.log(boost.toString()); //boost.toString();
-  console.log(boost.result); //DieFace object (face, possibleOutcomes, value);
-  console.log(boost.result.face); //result after roll (TERM).
-  console.log(boost.result.possibleOutcomes); //all possible outcomes
-  console.log(boost.result.value); //result after roll: value ({s: X, a: X, f: X, t: X, T: X, D: X}).
- */
-/*   // Dice, Modifiers, & DicePool class tests
-  var dice = new Dice([0,4,2,2,3,3]);
-  var modifiers = new Modifiers([0,0,0,0,1,0]);
-  var dicePool  = new DicePool(dice, modifiers);
-  console.log("dicePool tests __________________________");
-    console.log("\tPre-roll tests:");
-      console.log("\t\tresults: ");
-        console.log(dicePool.results);
-      console.log("\t\tgetDiceCount(): ");
-        console.log(dicePool.getDiceCount());
-  dicePool.roll();
-  console.log("⚠ Dice Pool has been rolled! ⚠");
-    console.log("\tPost-roll tests:");
-      console.log("\t\tresults: ");
-        console.log(dicePool.results);
-      console.log("\t\ttoSring(): ");
-        console.log(dicePool.toString());
-      console.log("\t\tgetModifiers(): ");
-        console.log(dicePool.getModifiers());
-      console.log("\t\tgetTrueValues(): ");
-        console.log(dicePool.getTrueValues());
-      console.log("\t\tgetCancelledValues(): ");
-        console.log(dicePool.getCancelledValues());
-      console.log("\t\tgetSuccess(): ");
-        console.log(dicePool.getSuccess());
-      console.log("\t\tgetAdvantage(): ");
-        console.log(dicePool.getAdvantage());
-      console.log("\t\tgetPoolSummary(): ");
-        console.log(dicePool.getPoolSummary());
- */
-/*   // DiceTrial class tests
-  const NUM_ROLLS = 100000;
-
-  var dice = new Dice([1,4,2,2,3,3]);
-  var modifiers = new Modifiers([0,0,0,0,1,0]);
-  var dicePool  = new DicePool(dice, modifiers);
-  var diceTrial = new DiceTrial(dicePool, NUM_ROLLS);
-  
-  console.log("\nDiceTrial tests __________________________");
-
-  diceTrial.runTrial();
-  console.log("⚠ Dice Trial has been run! ⚠");
-
-  console.log("\ndiceTrial.getTrials()");
-    console.log(diceTrial.getTrials());
-  console.log("\ndiceTrial.getTotalValues()");
-    console.log(diceTrial.getTotalValues());
-  console.log("\ndiceTrial.getAverageValues()");
-    console.log(diceTrial.getAverageValues());
-  console.log("\ndiceTrial.getTrialSummary()");
-    console.log(diceTrial.getTrialSummary());
-  console.log("\ndiceTrial.getCancelledTotalValues()");
-    console.log(diceTrial.getCancelledTotalValues());
-  console.log("\ndiceTrial.getCancelledAverageValues()");
-    console.log(diceTrial.getCancelledAverageValues());
-  console.log("\ndiceTrial.getCancelledTrialSummary()");
-    console.log(diceTrial.getCancelledTrialSummary());
- */
-/*   // DiceTrial tabulated and cancelledTabulated tests
-  const NUM_ROLLS = 200;
-
-  var dice = new Dice([1,4,2,2,3,3]);
-  var dicePool  = new DicePool(dice);
-  var diceTrial = new DiceTrial(dicePool, NUM_ROLLS);
-
-  console.log("\nDiceTrial tabulate tests __________________________");
-
-  diceTrial.runTrial();
-  console.log("⚠ Dice Trial has been run! ⚠");
-
-  console.log("\ndiceTrial.getTabulatedResults()");
-    console.log(diceTrial.getTabulatedResults());
-  console.log("\ndiceTrial.getTabulatedResultsPercents()");
-    console.log(diceTrial.getTabulatedResultsPercents());
-  console.log("\ndiceTrial.getCancelledTabulatedResults()");
-    console.log(diceTrial.getCancelledTabulatedResults());
-  console.log("\ndiceTrial.getCancelledTabulatedResultsPercents()");
-    console.log(diceTrial.getCancelledTabulatedResultsPercents());
- */
-
-  $(document).ready(function(){
-    //SECTION: INITIALIZATION
-    initialized = false;
-    $(function (){$('[data-toggle="tooltip"]').tooltip();});
-
-
-    // declarations for known and static values
-    const DEV = {
-      PERFORMANECE_MEASUREMENT: {
-        FUNCTION_SPEED: true,
-      }
-    };
-    const BUFFS = ["Proficiency", "Ability", "Boost"];
-    const DEBUFFS = ["Challenge", "Difficulty", "Setback"];
-    const DICE_TYPES = BUFFS.concat(DEBUFFS);
-    const POSITIVE_OUTCOMES = ["SUCCESS", "ADVANTAGE", "TRIUMPH"];
-    const NEGATIVE_OUTCOMES = ["FAILURE", "THREAT", "DESPAIR"];
-    const POSITIVE_ICONS = BUFFS.concat(POSITIVE_OUTCOMES);
-    const NEGATIVE_ICONS = DEBUFFS.concat(NEGATIVE_OUTCOMES);
-    const OUTCOMES = POSITIVE_OUTCOMES.concat(NEGATIVE_OUTCOMES);
-    const OUTCOMES_INIT_CAP_PLURAL = ["Successes", "Advantages", "Triumphs", "Failures", "Threats", "Despairs"];
-    const INPUTS = (
-      _.times(DICE_TYPES.length, (i)=> _.lowerCase(DICE_TYPES[i] + '-input'))
-    ).concat(
-      _.times(DICE_TYPES.length, (i)=> _.lowerCase(DICE_TYPES[i] + '-input'))
-    )
-    const POOL_INPUTS = 0;
-    const ALL_ICONS = POSITIVE_ICONS.concat(NEGATIVE_ICONS);
-    const DICE_STRIP_ICON_WIDTH   = 30;
-    const DICE_STRIP_ICON_SPACING = 2;
-    const DICE_STRIP_MAX_ICONS    = 20;
-    const CHART_FADE_SPEED = 100; //millisecond
-    const SECTION_SLIDING_SPEED = 250; //millisecond
-    const SPINNER_SPEED = 100; //millisecond
-    const CHART_FADE_EASING = 'swing';
-    const HIGHCHARTS = [
-      'highchart-netPercent',
-      'highchart-totalPercent',
-      'highchart-net',
-      'highchart-total'
-    ];
-    const CHART_BUTTONS = { // the buttons that show/hide the charts, as jQuery objects
-      'netPercent': $('#netPercent-chart-btn'),
-      'totalPercent': $('#totalPercent-chart-btn'),
-      'net': $('#net-chart-btn'),
-      'total': $('#total-chart-btn'),
-    };
-    const CHART_BOXES = { // the boxes that contain the charts, as jQuery objects
-      'netPercent': $('#netPercent-chart-box'),
-      'totalPercent': $('#totalPercent-chart-box'),
-      'net': $('#net-chart-box'),
-      'total': $('#total-chart-box'),
-    };
-    
-
-    // SECTION: SITE SECTION FOLDING
-    //Folding Toolkit
-    const SECTION_NAMES = {
-      //  name    :  label,
-      'dicepool'  : 'Dice Pool',
-      'summary'   : 'Summary',
-      'charts'    : 'Charts',
-      'tables'    : 'Tables',
-    };
-    function showSection($button, $container, $box, label, speed=SECTION_SLIDING_SPEED){
-      hideAllSections();
-      $button.html(`<b>${label}</b>`);
-      $button.addClass('disabled');
-      $button.addClass('bg-light');
-      $button.addClass('text-dark');
-      $container.slideDown(speed);
-      $box.css('box-shadow', '0px 0px 10px 5px white, 0px 0px 10px 5px white inset');
-    }
-    function hideSection($button, $container, $box, label, speed=SECTION_SLIDING_SPEED){
-      $box.css('box-shadow', '0px 0px 0px 0px white, 0px 0px 0px 0px white inset');
-      $button.html(`<b>${label} ▼</b>`);
-      $button.removeClass('disabled');
-      $button.removeClass('bg-light');
-      $button.removeClass('text-dark');
-      $container.slideUp(speed);
-    }
-    function hideAllSections(){
-      _.each(SECTION, function(section, sectionName){
-        section.hide();
-      });
-    }
-    
-    SECTION = {};
-    _.each(SECTION_NAMES, function(label, sectionName){
-      _.set(SECTION, sectionName, {
-        'label'         : label,
-        'speed'         : SECTION_SLIDING_SPEED,
-        '$container'    : $('#'+sectionName), 
-        '$btn'          : $('#'+sectionName+'-btn'),
-        '$box'          : $('#'+sectionName+'-box'),
-        'isHidden'      : function(){return this.$container.is(':hidden');},
-        'isShown'       : function(){return this.$container.is(':visible');},
-        'hide'          : function(btn=this.$btn, container=this.$container, box=this.$box, label=this.label, speed=this.speed){hideSection(btn, container, box, label, speed);},
-        'show'          : function(btn=this.$btn, container=this.$container, box=this.$box, label=this.label, speed=this.speed){showSection(btn, container, box, label, speed);},
-        'toggle'        : function(){this.isHidden() ? this.show() : this.hide();},
-        'bound'         : false,
-        'isBound'       : function(){return this.bound;},
-        'bindBtn'       : function(){
-          if (!this.bound){
-            this.$btn.click(this.toggle.bind(this));
-            this.bound = true;
-          }
-          return this.bound;
-        }
-      });
-    });
-    
-    
-    //declarations for globally tracked values
-    var dicePoolShown = false;
-    var summaryShown  = false;
-    var chartsShown   = false;
-    var tablesShown   = false;
-    var numRolls;
-    var numDice;
-    var numModifiers;
-    var numIconTypes;
-    var chart;
-    var chartsData = {};
-    var charts = {}
-    var currentChart = CHART_BOXES['netPercent'];
-    var spinnerIntervalID;
-    var spinnerActive = false;
-
-    _.each(CHART_BOXES, box => box.hide());
-    _.forEach(SECTION, (section) => section.bindBtn() && section.$container.hide());
-    $('#spinner-image').hide();
-
-    //SECTION: EVENT HANDLERS
-    // When any dice or modifier input is changed...
-    $('.form-control').change(function(){
-      $('#total-roll-combos').html('Total Distinct Rolls: ' + getTotalRollCombos());
-      
-      updateIconStrip();
-    });
-    function getTotalRollCombos(){ // what happens whenever any dice or modifier input is changed
-      /*
-        These multipliers might look weird, why don't they just get the numFaces value?
-        well, the numFaces value is the number of faces on the die, but the total 
-        number of combos is the computed number of possible results.
-        These dice have repeat faces, so the number of possible results is not the same.
-        The multiplier then becomes the number of -distinct- faces on the die.
-      */
-      let proficiencyCombos = Math.pow(7, parseInt($('#proficiency-input').val()));
-      let abilityCombos = Math.pow(6, parseInt($('#ability-input').val()));
-      let boostCombos = Math.pow(5, parseInt($('#boost-input').val()));
-      let challengeCombos = Math.pow(7, parseInt($('#challenge-input').val()));
-      let difficultyCombos = Math.pow(6, parseInt($('#difficulty-input').val()));
-      let setbackCombos = Math.pow(3, parseInt($('#setback-input').val()));
-      proficiencyCombos = proficiencyCombos == 0 ? 1 : proficiencyCombos;
-      abilityCombos = abilityCombos == 0 ? 1 : abilityCombos;
-      boostCombos = boostCombos == 0 ? 1 : boostCombos;
-      challengeCombos = challengeCombos == 0 ? 1 : challengeCombos;
-      difficultyCombos = difficultyCombos == 0 ? 1 : difficultyCombos;
-      setbackCombos = setbackCombos == 0 ? 1 : setbackCombos;
-
-      numCombos = proficiencyCombos*abilityCombos*boostCombos*challengeCombos*difficultyCombos*setbackCombos;
-      return numCombos.toLocaleString();
-    }
-
-    $("#run-trials").click(function(){ //what happens whgen the run trials button is clicked
-      disableTrialBtn();
-      spinner();
-      
-      //Input & Declarations
-      var dice = new Dice([
-        parseInt($('#proficiency-input').val()),
-        parseInt($('#ability-input').val()),
-        parseInt($('#boost-input').val()),
-        parseInt($('#challenge-input').val()),
-        parseInt($('#difficulty-input').val()),
-        parseInt($('#setback-input').val()),
-      ]);
-      numDice = parseInt($('#proficiency-input').val()) + parseInt($('#ability-input').val()) + parseInt($('#boost-input').val()) + parseInt($('#challenge-input').val()) + parseInt($('#difficulty-input').val()) + parseInt($('#setback-input').val());
-      var modifiers = new Modifiers([
-        parseInt($('#success-input').val()),
-        parseInt($('#advantage-input').val()),
-        parseInt($('#failure-input').val()),
-        parseInt($('#threat-input').val()),
-        parseInt($('#triumph-input').val()),
-        parseInt($('#despair-input').val()),
-      ]);
-      numModifiers = parseInt($('#success-input').val()) + parseInt($('#advantage-input').val()) + parseInt($('#failure-input').val()) + parseInt($('#threat-input').val()) + parseInt($('#triumph-input').val()) + parseInt($('#despair-input').val());
-      numIconTypes = numDice + numModifiers;
-      numRolls = parseInt($('#roll-number-input').val());
-      let dicePool  = new DicePool(dice, modifiers);
-      let diceTrial = new DiceTrial(dicePool, numRolls, DEV.PERFORMANECE_MEASUREMENT.FUNCTION_SPEED);
-
-      //if the user has entered any amount of dice as input
-      if (numIconTypes > 0){
-        let startTime = performance.now();
-
-        //do the thing. the big thing.
-        diceTrial.runTrial();
-        trialSummary = diceTrial.getTrialSummary();
-        cancelledTrialSummary = diceTrial.getCancelledTrialSummary();
-
-        //Update the tables section
-        let totalValues = diceTrial.getTotalValues();
-        let averageValues = diceTrial.getAverageValues();
-        let cancelledTotalValues = diceTrial.getCancelledTotalValues();
-        let cancelledAverageValues = diceTrial.getCancelledAverageValues();
-        updateResultsTable(totalValues, averageValues, cancelledTotalValues, cancelledAverageValues);
-        $('#roll-count-label').html(`After cross-cancellation and ${numRolls.toLocaleString()} rolls, the average results of the dice pool above is:`);
-
-        //update the charts section
-        buildCharts(diceTrial);
-        //showChart(CHART_BUTTONS.netPercent, CHART_BOXES.netPercent);
-        //click the CHART_BUTTON for netPercent instead
-        CHART_BUTTONS.netPercent.click();
-        
-        
-        //update the summary section
-        updateTrialSummary(cancelledAverageValues);
-        spinner();
-        SECTION.summary.show();
-
-        let endTime = performance.now();
-        let timeDiff = (endTime - startTime)/1000; // function run time in seconds
-        $('#run-time').html(`<i>Roll trial completed in ${timeDiff.toFixed(4)} seconds</i>`);
-      }
-
-      enableTrialBtn();
-      return;
-    });
-    //run-trials helper methods
-    $(document).keydown(function(e) {
-      if (e.which == 13) { // 13 is the key code for Enter
-        if ($('#run-trials').is(":disabled")){
-          return;
-        }
-        $('#run-trials').click();
-      }
-    });
-    function disableTrialBtn(){
-      $('#run-trials').prop('disabled', true);
-      $('#run-trials').addClass('btn-secondary');
-      $('#run-trials').removeClass('btn-warning');
-    }
-    function enableTrialBtn(){
-      $('#run-trials').prop('disabled', false);
-      $('#run-trials').addClass('btn-success');
-      $('#run-trials').removeClass('btn-secondary');
-    }
-    function updateTotals(totalValues){
-      $('#total-success').html(totalValues['s']);
-      $('#total-advantage').html(totalValues['a']);
-      $('#total-failure').html(totalValues['f']);
-      $('#total-threat').html(totalValues['t']);
-      $('#total-triumph').html(totalValues['T']);
-      $('#total-despair').html(totalValues['D']);
-    }
-    function updateAverages(averageValues){
-      $('#average-success').html(averageValues['s'].toFixed(3));
-      $('#average-advantage').html(averageValues['a'].toFixed(3));
-      $('#average-failure').html(averageValues['f'].toFixed(3));
-      $('#average-threat').html(averageValues['t'].toFixed(3));
-      $('#average-triumph').html(averageValues['T'].toFixed(3));
-      $('#average-despair').html(averageValues['D'].toFixed(3));
-    }
-    function updateAdjustedTotals(cancelledTotalValues){
-      $('#adjusted-total-success').html(cancelledTotalValues['s']);
-      $('#adjusted-total-advantage').html(cancelledTotalValues['a']);
-      $('#adjusted-total-failure').html(cancelledTotalValues['f']);
-      $('#adjusted-total-threat').html(cancelledTotalValues['t']);
-      $('#adjusted-total-triumph').html(cancelledTotalValues['T']);
-      $('#adjusted-total-despair').html(cancelledTotalValues['D']);
-    }
-    function updateAdjustedAverages(cancelledAverageValues){
-      $('#adjusted-average-success').html(cancelledAverageValues['s'].toFixed(3));
-      $('#adjusted-average-advantage').html(cancelledAverageValues['a'].toFixed(3));
-      $('#adjusted-average-failure').html(cancelledAverageValues['f'].toFixed(3));
-      $('#adjusted-average-threat').html(cancelledAverageValues['t'].toFixed(3));
-      $('#adjusted-average-triumph').html(cancelledAverageValues['T'].toFixed(3));
-      $('#adjusted-average-despair').html(cancelledAverageValues['D'].toFixed(3));
-    }
-    function updateResultsTable(totalValues, averageValues, cancelledTotalValues, cancelledAverageValues){
-      updateTotals(totalValues);
-      updateAverages(averageValues);
-      updateAdjustedTotals(cancelledTotalValues);
-      updateAdjustedAverages(cancelledAverageValues);
-    }
-    
-    //Rolls > Dice Icon Strip
-    function appendIcons(container, name = "blank", count = DICE_STRIP_ICON_SPACING){
-      for (i=0; i<count; i++) {
-        let img = document.createElement("img");
-        img.src=`./images/${name}.png`;
-        img.height=DICE_STRIP_ICON_WIDTH;
-        img.width=DICE_STRIP_ICON_WIDTH;
-        container.append(img);
-      }
-    }
-    function appendIconCount(container, count, name){
-      // for cases where the total number of icons exceeds 40,
-      // show a singular dice type icon followed by it's count.
-
-      //append the image icon
-      let iconImg = document.createElement("img");
-      iconImg.src=`./images/${name}.png`;
-      iconImg.height=DICE_STRIP_ICON_WIDTH;
-      iconImg.width=DICE_STRIP_ICON_WIDTH;
-      container.append(iconImg);
-      //append the count
-      let countLabel = document.createElement("span");
-      countLabel.innerHTML = " x " + count + "&nbsp;";
-      $(countLabel).addClass('h3');
-      $(countLabel).addClass('pl-1');
-      $(countLabel).addClass('text-light');
-      container.append(countLabel);
-      //append the blank icon
-      let blankImg = document.createElement("img");
-      blankImg.src=`./images/blank.png`;
-      blankImg.height=DICE_STRIP_ICON_WIDTH;
-      blankImg.width=DICE_STRIP_ICON_WIDTH;
-      container.append(blankImg);
-
-    }
-    function updateIconStrip(){
-      let container = $('#dice-icon-strip');
-      container.empty();
-      let name = "";
-
-      if (numIconTypes <= DICE_STRIP_MAX_ICONS){
-        for (let i = 0; i < POSITIVE_ICONS.length; i++){
-          name = (POSITIVE_ICONS[i]).toLowerCase();
-          let suffix = POSITIVE_OUTCOMES.includes((POSITIVE_ICONS[i]).toUpperCase()) ? "-light" : "";
-          let count = parseInt($(`#${name}-input`).val());
-          appendIcons(container, name + suffix, count);
-        }
-        //appendIcons(container); //blanks for spacing
-        for (let i = 0; i < NEGATIVE_ICONS.length; i++){
-          name = (NEGATIVE_ICONS[i]).toLowerCase();
-          let suffix = NEGATIVE_OUTCOMES.includes((NEGATIVE_ICONS[i]).toUpperCase()) ? "-light" : "";
-          let count = parseInt($(`#${name}-input`).val());
-          appendIcons(container, name + suffix, count);
-        }
-
-      } else {
-        for (let i = 0; i < ALL_ICONS.length; i++){
-          name = (ALL_ICONS[i]).toLowerCase();
-          let count = parseInt($(`#${name}-input`).val());
-          if (count > 0){
-            if (OUTCOMES.includes(name.toUpperCase())){
-              name += "-light";
-            }
-            appendIconCount(container, count, name);
-          }
-        }
-      }
-    }
-    
-    //Rolls > Trial Summary
-    function updateTrialSummary(cancelledAverageValues){
-      let success = cancelledAverageValues['s'] > cancelledAverageValues['f'];
-      let advantage = cancelledAverageValues['a'] > cancelledAverageValues['t'];
-      let numSuccessFailure = Math.abs(cancelledAverageValues['s'] - cancelledAverageValues['f']);
-      let numAdvantageThreat = Math.abs(cancelledAverageValues['a'] - cancelledAverageValues['t']);
-      let successCountElem = $('#trial-summary-success-count');
-      let successIconContainer = $('#trial-summary-success-label-icon');
-      let successLabelElem = $('#trial-summary-success-label-text');
-      let advantageCountElem = $('#trial-summary-advantage-count');
-      let advantageIconContainer = $('#trial-summary-advantage-label-icon');
-      let advantageLabelElem = $('#trial-summary-advantage-label-text');
-      successCountElem.empty();
-      successIconContainer.empty();
-      successLabelElem.empty();
-      advantageCountElem.empty();
-      advantageIconContainer.empty();
-      advantageLabelElem.empty();
-
-      //BOX-SHADOW
-      //success/failure
-      successBox= $('#success-summary-box');
-      successBox.prop('style', `border-radius: 20px; box-shadow: 0px 0px 20px 10px ${success ? 'green' : 'red'} inset;`);
-      //advantage/threat
-      advantageBox= $('#advantage-summary-box');
-      advantageBox.prop('style', `border-radius: 20px; box-shadow: 0px 0px 20px 10px ${advantage ? 'green' : 'red'} inset;`);
-
-      
-      //SUCCESS/FAILURE
-      if (numAdvantageThreat > 0){
-        
-      }
-      //count label 
-      let successCountText = "  ≈" + numSuccessFailure.toFixed(1);
-      successCountElem.html(successCountText);
-      //icon
-      let successFailureImgSrc = success ? 'images/success-light.png' : 'images/failure-light.png';
-      let successFailureImg = document.createElement('img');
-      successFailureImg.src = successFailureImgSrc;
-      $(successFailureImg).prop('style', 'height: 6rem; width: auto;');
-      successIconContainer.append(successFailureImg);
-      //text label
-      let successText = success ? 'SUCCESSES' : 'FAILURES';
-      successLabelElem.removeClass('text-success');
-      successLabelElem.removeClass('text-danger');
-      successLabelElem.addClass(success ? 'text-success' : 'text-danger');
-      successLabelElem.html(successText);
-
-      
-      //ADVANTAGE/THREAT
-      //count label
-      let advantageCountText = "  ≈" + (numAdvantageThreat.toFixed(1));
-      advantageCountElem.html(advantageCountText);
-      //icon 
-      let advantageThreatImgSrc = advantage ? 'images/advantage-light.png' : 'images/threat-light.png';
-      let advantageThreatImg = document.createElement('img');
-      advantageThreatImg.src = advantageThreatImgSrc;
-      $(advantageThreatImg).prop('style', 'height: 6rem; width: auto;');
-      advantageIconContainer.append(advantageThreatImg);
-      //text label
-      let advantageText = advantage ? 'ADVANTAGES' : 'THREATS';
-      advantageLabelElem.removeClass('text-success');
-      advantageLabelElem.removeClass('text-danger');
-      advantageLabelElem.addClass(advantage ? 'text-success' : 'text-danger');
-      advantageLabelElem.html(advantageText);
-    }
-    
-    //Charts
-    function buildCharts(diceTrial){
-      buildChart( //netPercent
-        diceTrial.getCancelledTabulatedResultsPercents(),
-        'netPercent',
-        'highchart-netPercent',
-        'Net Results (Percentages)',
-        `
-            A histogram of of dice symbol occurrences per roll
-            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
-            Measured as percentages. Opposite outcomes are cross-cancelled.
-        `,
-        '# of Outcomes/ Roll',
-        'Net Results (%)',
-        100,
-        '%'
-      );
-      buildChart( //totalPercent
-        diceTrial.getTabulatedResultsPercents(),
-        'totalPercent',
-        'highchart-totalPercent',
-        'Total Results (Percentages)',
-        `
-            A histogram of of dice symbol occurrences per roll
-            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
-            Measured as percentages. Opposite outcomes are <i>NOT</i> cross-cancelled.
-        `,
-        'Percent of Rolls',
-        'Total Results',
-        100,
-        '%'
-      );
-      buildChart( //netSum
-        diceTrial.getCancelledTabulatedResults(),
-        'net',
-        'highchart-net',
-        'Net Results',
-        `
-            A histogram of of dice symbol occurrences per roll
-            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
-            Measured as sum total. Opposite outcomes are cross-cancelled.
-        `,
-        'Number of Rolls',
-        'Total Results',
-        numRolls
-      );
-      buildChart( //totalSum
-        diceTrial.getTabulatedResults(),
-        'total',
-        'highchart-total',
-        'Total Results',
-        `
-            A histogram of of dice symbol occurrences per roll
-            over ${numRolls.toLocaleString()} rolls for the given dice pool.\n</br>
-            Measured as sum total. Opposite outcomes are <i>NOT</i> cross-cancelled.
-        `,
-        'Number of Rolls',
-        'Total Results',
-        numRolls
-      );
-    }
-    //buildCharts helpers
-    function buildChart(chartData, chartName, targetElementId, titleText, subtitleText, xAxisTitle, yAxisTitle, yMax, chartYUnitsRight=''){
-      _.set(chartsData, chartName, buildChartData(chartData, yMax));
-      _.set(chartsData[chartName], 'targetElementId', targetElementId);
-      _.set(chartsData[chartName], 'titleText', titleText);
-      _.set(chartsData[chartName], 'subtitleText', subtitleText);
-      _.set(chartsData[chartName], 'xAxisTitle', xAxisTitle);
-      _.set(chartsData[chartName], 'yAxisTitle', yAxisTitle);
-      _.set(chartsData[chartName], 'chartYUnitsRight', chartYUnitsRight);
-      
-      let chartOptions = chartsData[chartName];
-      chart = Highcharts.chart(chartOptions.targetElementId, {
-        chart: {
-          type: 'column',
-          panning : {
-            enabled: true,
-            type: 'xy',
-          },
-          zooming: {
-            type: 'xy',
-            mouseWheel: true,
-          },
-        },
-        legend: {
-          enabled: true,
-          title: {
-            text: 'Outcome',
-            style: {
-              textAlign: 'center',
-            },
-          },
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-        },
-        series: chartOptions.array,
-        subtitle: {
-          text: chartOptions.subtitleText
-        },
-        title: {
-          text: chartOptions.titleText,
-        },
-        tooltip: {
-          formatter: function () {
-            let outcomePS = {}
-            let i = 0;
-            OUTCOMES_INIT_CAP_PLURAL.forEach((outcome, i) => {
-              outcomePS[outcome] = OUTCOMES[i].toLowerCase();
-              i++;
-            });
-
-            return `
-              <b>${((this.y).toLocaleString()) + chartOptions.chartYUnitsRight}</b> had <b>${this.x}</b>
-              <span style="color: ${this.series.color}; "text-shadow: 0px 0px 10px #777, 0px 0px 2px #fff;"">
-                <b>${this.series.name}.</b>
-              </span>
-
-            `;
-          },
-        },
-        xAxis: {
-          min: 0,
-          title: {
-            text: chartOptions.xAxisTitle,
-          },
-          categories: chartOptions.combinedCategories,
-          crosshair: true,
-        },
-        yAxis: {
-          min: 0,
-          title: {
-            text: chartOptions.yAxisTitle,
-          },
-          crosshair: true,
-          startOnTick: false,
-          endOnTick: false,
-        },
-      });
-
-    }
-    function buildChartData(results, yMax){
-      let data = {
-        'combinedCategories': [],
-        'array': [],
-      };
-      // for each outcome, build a series of x
-      for (let outcome = 0; outcome < OUTCOMES_INIT_CAP_PLURAL.length; outcome++){
-        let series = getResultSeries(results, OUTCOMES_INIT_CAP_PLURAL[outcome]);
-        data.combinedCategories = _.union(data.combinedCategories, series.categories);
-        if (series.data[0] != yMax){
-          data.array = _.union(data.array, [series]);
-        }
-      }
-
-      return data;
-    }
-    function getResultSeries(results, name){
-      let outcome;
-      let color;
-      switch (name){
-        case "Successes":
-          outcome = 's';
-          color = "#4d7825";
-          break;
-        case "Failures":
-          outcome = 'f';
-          color = "#611b77"
-          break;
-        case "Advantages":
-          outcome = 'a';
-          color = "#83e1fb"
-          break;
-        case "Threats":
-          outcome = 't';
-          color = "#1e1f1f"
-          break;
-        case "Triumphs":
-          outcome = 'T';
-          color = "#fde000"
-          break;
-        case "Despairs":
-          outcome = 'D';
-          color = "#f20601"
-          break;
-      }
-      let data = [];
-      let categories = [];
-      let keys = Object.keys(results[outcome]);
-      for (key in keys){
-        categories.push(key);
-      }
-      for (value in results[outcome]){
-        data.push(results[outcome][value]);
-      }
-      let resultSeries = {
-        'name': name,
-        'color': color,
-        'data': data,
-        'categories': categories
-      }
-      return resultSeries;
-    }
-
-    function highlightChartButton($chartBtn){
-      resetChartButtons();
-      $chartBtn.removeClass('btn-success');
-      $chartBtn.removeClass('bg-success');
-      $chartBtn.addClass('btn-outline-success');
-      $chartBtn.addClass('disabled');
-      $chartBtn.addClass('bg-light');
-      $chartBtn.css('z-index', '2');
-      $chartBtn.css('position', 'relative');
-      $chartBtn.css('top', '1px');
-
-      //$chartBtn.removeClass('focus');
-      // instead of removing the focus class,
-      // I will remove only the bottom border that bootstrap has by default on focused buttons
-      // This should only affect the bottom border of the box-shadow property of bootstrap's button:focus css class.
-
-
-    }
-    function resetChartButtons(){
-      _.each(CHART_BUTTONS, function(button) {
-        button.removeClass('btn-outline-success');
-        button.removeClass('disabled');
-        button.removeClass('bg-light');
-        button.addClass('btn-success');
-        button.addClass('bg-success');
-        button.css('z-index', '1');
-        button.css('position', 'static');
-        button.css('top', '0px');
-      });
-    }
-
-    function spinner(){
-      let $box=$('spinner-box');
-      let $image=$('spinner-image');
-      if (spinnerActive){
-        $image.hide();
-        clearInterval(spinnerIntervalID);
-        spinnerActive = false;
-        return;
-      }
-
-      let images = [];
-      for (let i = 1; i <= 8; i++){
-        images.push(`images/spinning_saber/spinning_saber.${i.toString().padStart(3, '0')}.png`);
-      }
-
-      let i = 0;
-
-      spinnerIntervalID = setInterval(() => {
-        $image.attr('src', images[i]);
-        i++;
-        i = i >= images.length ? i = 0: i;
-      }, SPINNER_SPEED);
-
-      $image.show();
-      spinnerActive = true;
-      return;
-    }
-
-    _.forEach(CHART_BUTTONS, (button, key) => {
-      button.on('click', () => {
-        currentChart.fadeOut(CHART_FADE_SPEED, CHART_FADE_EASING, () => {
-          currentChart = CHART_BOXES[key];
-          currentChart.fadeIn(CHART_FADE_SPEED, CHART_FADE_EASING);
-        });
-        highlightChartButton(button);
-      });
-    });
-    
-    //SECTION: FINISHED INITIAL LOADING
-    SECTION.dicepool.$box.show();
-    //toggleDicePoolSection(true);
-    initialized = true;
-  });
-</script>
+    <script src="./src/Tests.js"></script>
+    <script src="./src/Main.js"></script>
+    <script src="./src/components/SiteController.js"></script>
 </head>
-<body class="bg-dark" >
-  <!--Main Container-->
-  <div class="container-fluid bg-dark" style="width:60%">
-    <!--Header-->
-    <div class="bg-dark" style="width:100%; border-radius: 0px 0px 10px 10px;">
-      <div class="display-4 text-center text-light">DICE TRIALS</div>
-      <div class="h3 text-center text-light"><i>A Monte Carlo simulator for Star Wars FFG & Gensys dice systems</i></div>
-      <div class="h6 text-center text-secondary"><i>🚧UNDER CONSTRUCTION. Last Update: July 9th, 2023🚧</i></div>
-      <!-- <div class="text-center text-secondary"><i>See also: <a href="https://docs.google.com/spreadsheets/d/1ZlrbbYkT4C5emlW8wFVDMLSh2nv6tNJTk5SwY_LUc6k/copy?usp=sharing" data-toggle="tooltip" data-placement="top" title="This is a sheet detailing the odds of getting any given result from any number of dice.">Google Sheets - Dice Probability Breakdown🔗</a></i></div> -->
-      <!--Icon Strip-->
-      <div class="d-flex justify-content-center p-1 mb-2 mt-2 bg-dark" style="border-radius: 20px; box-shadow: 0px 10px 5px 3px rgba(0,0,0,0.5) inset;">
-        <div id="dice-icon-strip"></div>
-      </div>
-    </div>
-    <div id="dicepool-box" class="mt-2 mb-1">
-      <!--Dice Pool & Trials Collapser-->
-      <div style="width:100%;">
-        <button id="dicepool-btn" class="btn btn-warning btn-lg btn-block border-top " style="width:100%;">Dice Pool ▼</i></button>
-      </div>
-      <!--Dice Pool & Trials-->
-      <div id="dicepool" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black;"> 
-        <!-- Dice Pool -->
-        <div class="row pt-2">
-          <!-- Proficiency -->
-          <div class="col col-2 text-center">
-            <img src="./images/proficiency.png" class="img-fluid" alt="proficiency icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="proficiency-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Proficiency dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="proficiency-label"   class="">Proficiency  </h3>
-          </div>
-          <!-- Ability -->
-          <div class="col col-2 text-center">
-            <img src="./images/ability.png" class="img-fluid" alt="ability icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="ability-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Ability dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="ability-label"       class="">Ability      </h3>
-          </div>
-          <!-- Boost -->
-          <div class="col col-2 text-center">
-            <img src="./images/boost.png" class="img-fluid" alt="boost icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="boost-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Boost dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="boost-label"         class="">Boost        </h3>
-          </div>
-          <!-- Challenge -->
-          <div class="col col-2 text-center">
-            <img src="./images/challenge.png" class="img-fluid" alt="challenge icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="challenge-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Challenge dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="challenge-label"     class="">Challenge    </h3>
-          </div>
-          <!-- Difficulty -->
-          <div class="col col-2 text-center">
-            <img src="./images/difficulty.png" class="img-fluid" alt="difficulty icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="difficulty-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Difficulty dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="difficulty-label"    class="">Difficulty   </h3>
-          </div>
-          <!-- Setback -->
-          <div class="col col-2 text-center">
-            <img src="./images/setback.png" class="img-fluid" alt="setback icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="setback-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Setback dice in the pool."/>
-              </div>
-            </div>
-            <h3 id="setback-label"       class="">Setback      </h3>
-          </div>
-        </div
-        ><!-- Modifiers -->
-        <div class="row">
-          <!-- Success -->
-          <div class="col col-2 text-center">
-            <img src="./images/success-light.png" class="img-fluid" alt="success icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="success-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Success bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="success-label"       class="">Success      </h3>
-          </div>
-          <!-- Advantage -->
-          <div class="col col-2 text-center">
-            <img src="./images/advantage-light.png" class="img-fluid" alt="advantage icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="advantage-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Advantage bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="advantage-label"     class="">Advantage    </h3>
-          </div>
-          <!-- Triumph -->
-          <div class="col col-2 text-center">
-            <img src="./images/triumph-light.png" class="img-fluid" alt="triumph icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="triumph-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Triumph bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="triumph-label"       class="">Triumph      </h3>
-          </div>
-          <!-- Failure -->
-          <div class="col col-2 text-center">
-            <img src="./images/failure-light.png" class="img-fluid" alt="failure icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="failure-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Failure bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="failure-label"       class="">Failure      </h3>
-          </div>
-          <!-- Threat -->
-          <div class="col col-2 text-center">
-            <img src="./images/threat-light.png" class="img-fluid" alt="threat icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="threat-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Threat bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="threat-label"        class="">Threat       </h3>
-          </div>
-          <!-- Despair -->
-          <div class="col col-2 text-center">
-            <img src="./images/despair-light.png" class="img-fluid" alt="despair icon" style="height:30%">
-            <div class="d-flex justify-content-center">
-              <div class="form-outline" style="width:60%;">
-                <input type="number" id="despair-input" class="form-control text-right h3" value="0" min="0" data-toggle="tooltip" data-placement="top" title="The number of Despair bonuses in the pool."/>
-              </div>
-            </div>
-            <h3 id="despair-label"       class="">Despair      </h3>
-          </div>
-        </div>
-        <!--Trials-->
-        <div class="container-fluid">
-          <!-- Number of Rolls & Run Trials -->
-          <div class="d-flex justify-content-center row">
-            <div id="total-roll-combos" class="text-center" data-toggle="tooltip" data-placement="top" title="This represents the total number of distinct arrangements of the dice pool.">Total Distinct Rolls: 0</div>
-            <div class="form-outline input-group" style="width:40%">
-              <div class="input-group-prepend">
-                <span class="input-group-text" style="border-radius: 10px 0 0 10px;">Number of Rolls:</span>
-              </div>
-              <input type="number" id="roll-number-input" class="form-control text-center h3" value="1000000" min="0"/>
-              <div class="input-group-append">
-                <button id="run-trials" class="myButton btn btn-success" type="button" data-toggle="tooltip" data-placement="top" title="Start the calculation." style="border-radius: 0 10px 10px 0;">Roll <i class="fa-solid fa-caret-right"></i></button>
-              </div>
-            </div>
-            <div class="h6 text-center text-secondary"><i>Recommended Number of Rolls: 1,000,000</i></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="summary-box" class="mt-2 mb-1">
-      <!--Summary Collapser-->
-      <div style="width:100%;">
-        <button id="summary-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Summary</i></button>
-      </div>
-      <!--Summary-->
-      <div id="summary" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
-        <!--Icon Strip-->
-        <div class="d-flex justify-content-center mb-2 mt-2">
-          <div id="dice-icon-strip"></div>
-        </div>
-        <!--Roll Count-->
-        <div class="d-flex justify-content-center">
-          <div id="roll-count-label" class="h4 text-center" style="width: 90%;"></div>
-        </div>
-        <!--Trial Summary-->
-        <div class="d-flex justify-content-center p-3">
-          <div class="container row" style="width: 90%; max-height: 10%;">
-            <!--Successes/Failures-->
-            <div id="success-summary-box" class="col p-4">
-              <div class="row align-items-center">
-                <div id="trial-summary-success-label-icon" class="col-3 justify-content-center" ></div>
-                <div id="trial-summary-success-count" class="col display-4"></div>
-              </div>
-              <div class="row d-flex justify-content-center">
-                <div id="trial-summary-success-label-text" class="col-6 display-4" style="width: 100%;"></div>
-              </div>
-            </div>
-            <!--Advantages/Threats-->
-            <div id="advantage-summary-box" class="col p-4">
-              <div class="row align-items-center text-right">
-                <div id="trial-summary-advantage-label-icon" class="col-3 justify-content-center"></div>
-                <div id="trial-summary-advantage-count" class="col display-4"></div>
-              </div>
-              <div class="row d-flex justify-content-center">
-                <div id="trial-summary-advantage-label-text" class="col-6 display-4" style="width: 100%;"></div>
-              </div> 
-            </div>
-          </div>
-        </div>
-        <!--Run Time-->
-        <div class="d-flex justify-content-center text-center">
-          <div id="run-time" class="text-secondary" style="width: 90%;"></div>
-        </div>
-      </div>
-    </div>
-    <div id="charts-box" class="mt-2 mb-1">
-      <!--Charts Collapser-->
-      <div style="width:100%;">
-        <button id="charts-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Charts</i></button>
-      </div>
-      <!--Charts-->
-      <div id="charts" class="bg-dark text-light p-2" style="border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
-        <!--Chart Tabs-->
-        <div class="row" >
-          <span class="col-2"><button id="netPercent-chart-btn"      class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Net %          </b></button></span>
-          <span class="col-2"><button id="totalPercent-chart-btn"    class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total %        </b></button></span>
-          <span class="col-2"><button id="net-chart-btn"              class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Net            </b></button></span>
-          <span class="col-2"><button id="total-chart-btn"            class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;"><b>Total          </b></button></span>
-          <span class="col-2"><button id="stacked-chart-btn"          class="disabled btn btn-secondary border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 0.65;"><b>🚧 Stacked % 🚧   </b></button></span>
-        </div>
-        <!--Highcharts Container-->
-        <div class="bg-light border border-success" style="width:100%; border-radius: 0px 10px 10px 10px; z-index: 1; box-shadow: 0px 1px 10px 1px green;">
-          <!-- Net % Chart -->
-          <div id="netPercent-chart-box">
-            <div id="highchart-netPercent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-          </div>
-          <!-- Total % Chart -->
-          <div id="totalPercent-chart-box">
-            <div id="highchart-totalPercent" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-          </div>
-          <!-- Net Chart -->
-          <div id="net-chart-box">
-            <div id="highchart-net" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-          </div>
-          <!-- Total Chart -->
-          <div id="total-chart-box">
-            <div id="highchart-total" class="bg-light" style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
-          </div>
-          <!-- Chart Tips-->
-          <div class="row">
-            <div class="col-1"></div>
-            <div class="col">
-              <div class="text-secondary text-right">ℹ <i>You can view charts with different information by clicking the green tabs near the top.</i></div>
-              <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by clicking and dragging.</i></div>
-              <div class="text-secondary text-right">ℹ <i>While zoomed in, hold shift and then click and drag to pan.</i></div>
-              <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart legend will remove that outcome from the chart view.</i></div>
-            </div>
-            <div class="col-1"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="tables-box" class="mt-2 mb-1">
-      <!--Tables Collapser-->
-      <div style="width:100%;">
-        <button id="tables-btn" class="disabled btn btn-warning btn-lg btn-block border-top " style="width:100%;">Tables</button>
-      </div>
-      <!--Tables-->
-      <div id="tables" class="bg-dark text-light " style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
-        <!-- Results Table -->
-        <div class="d-flex justify-content-center">
-          <table id="results-table" class="table table-striped table-bordered text-light bg-dark" style="width: 90%;">
-            <thead>
-              <tr>
-                <th scope="col" style="width:20%"></th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/success-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Success(es)</div>
-                </th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/advantage-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Advantage(s)</div>
-                </th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/triumph-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Triumph(s)</div>
-                </th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/failure-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Failure(s)</div>
-                </th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/threat-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Threat(s)</div>
-                </th>
-                <th scope="col">
-                  <div class="d-flex justify-content-center">
-                    <img src="./images/despair-light.png" class="img-fluid" alt="success icon" style="height:30%; width:30%;">
-                  </div>
-                  <div class="text-center">Despair(s)</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <tr class="text-center">
-                  <th scope="row" data-toggle="tooltip" data-placement="top" title="The sum of the all symbols resulting from all rolls.">Total</th>
-                  <td id="total-success">0</td>
-                  <td id="total-advantage">0</td>
-                  <td id="total-triumph">0</td>
-                  <td id="total-failure">0</td>
-                  <td id="total-threat">0</td>
-                  <td id="total-despair">0</td>
-                </tr>
-              </tr>
-              <tr>
-                <tr class="text-center">
-                  <th scope="row" data-toggle="tooltip" data-placement="top" title="The sum of the all symbols resulting from all rolls, adjusted for cross-cancelling.">Adjusted Total</th>
-                  <td id="adjusted-total-success">0</td>
-                  <td id="adjusted-total-advantage">0</td>
-                  <td id="adjusted-total-triumph">0</td>
-                  <td id="adjusted-total-failure">0</td>
-                  <td id="adjusted-total-threat">0</td>
-                  <td id="adjusted-total-despair">0</td>
-                </tr>
-              </tr>
-              <tr>
-                <tr class="text-center">
-                  <th scope="row" data-toggle="tooltip" data-placement="top" title="The sum of the all symbols resulting from all rolls, divided by the number of rolls.">Average</th>
-                  <td id="average-success">0</td>
-                  <td id="average-advantage">0</td>
-                  <td id="average-triumph">0</td>
-                  <td id="average-failure">0</td>
-                  <td id="average-threat">0</td>
-                  <td id="average-despair">0</td>
-                </tr>
-              </tr>
-              <tr>
-                <tr class="text-center">
-                  <th scope="row" data-toggle="tooltip" data-placement="top" title="The sum of the all symbols resulting from all rolls, divided by the number of rolls, .">Adjusted Average</th>
-                  <td id="adjusted-average-success">0</td>
-                  <td id="adjusted-average-advantage">0</td>
-                  <td id="adjusted-average-triumph">0</td>
-                  <td id="adjusted-average-failure">0</td>
-                  <td id="adjusted-average-threat">0</td>
-                  <td id="adjusted-average-despair">0</td>
-                </tr>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
+<body class="bg-dark">
+    <div id="spinner-overlay" style="display: none;">
+        <div id="spinner-sprite" style="display: none;"></div>
     </div>
-  </div>
-  <div id="spinner-box" style="position: relative; z-index: 3;">
-    <image id="spinner-image" src="images/spinning_saber/spinning_saber.001.png" width="500">
-  </div>
+    <!--Main Container-->
+    <div class="container-fluid bg-dark" style="width:70%; overflow: auto;">
+        <!--Header-->
+        <div class="section box">
+            <div id="heading-wrapper" class="d-flex justify-content-center">
+                <div class="section-box">
+                    <div class="display-4 text-center text-light">
+                        DICE TRIALS
+                    </div>
+                    <div class="h3 text-center text-light">
+                        <i>A Monte Carlo simulator for Star Wars FFG & Gensys dice systems</i>
+                    </div>
+                    <div id="dice-icon-strip">
+                        <img id="icon-strip-blank" src="/images/blank.png">
+                    </dfiv>
+                    
+                </div>
+            </div>
+        </div>
+        <div id="wrapper" class="d-flex justify-content-center">
+            <div id="section-container" class="section-box"></div>
+        </div>
+        <div class="section-box" id="dicepool-box">
+            <!--Dice Pool & Trials-->
+            <button id="dicepool-btn" class="section-btn">Dice Pool ▼</button>
+            <!-- DICEPOOL -->
+            <div id="dicepool" class="section-container">
+                <div class="row pt-2">
+                    <!-- Proficiency -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/proficiency.png" class="img-fluid" alt="proficiency icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="proficiency-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Proficiency dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="proficiency-label" class="">Proficiency </h3>
+                    </div>
+                    <!-- Ability -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/ability.png" class="img-fluid" alt="ability icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="ability-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Ability dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="ability-label" class="">Ability </h3>
+                    </div>
+                    <!-- Boost -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/boost.png" class="img-fluid" alt="boost icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="boost-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Boost dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="boost-label" class="">Boost </h3>
+                    </div>
+                    <!-- Challenge -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/challenge.png" class="img-fluid" alt="challenge icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="challenge-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Challenge dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="challenge-label" class="">Challenge </h3>
+                    </div>
+                    <!-- Difficulty -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/difficulty.png" class="img-fluid" alt="difficulty icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="difficulty-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Difficulty dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="difficulty-label" class="">Difficulty </h3>
+                    </div>
+                    <!-- Setback -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/setback.png" class="img-fluid" alt="setback icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="setback-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Setback dice in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="setback-label" class="">Setback </h3>
+                    </div>
+                </div><!-- Modifiers -->
+                <div class="row">
+                    <!-- Success -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/success-light.png" class="img-fluid" alt="success icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="success-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Success bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="success-label" class="">Success </h3>
+                    </div>
+                    <!-- Advantage -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/advantage-light.png" class="img-fluid" alt="advantage icon"
+                            style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="advantage-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Advantage bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="advantage-label" class="">Advantage </h3>
+                    </div>
+                    <!-- Triumph -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/triumph-light.png" class="img-fluid" alt="triumph icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="triumph-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Triumph bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="triumph-label" class="">Triumph </h3>
+                    </div>
+                    <!-- Failure -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/failure-light.png" class="img-fluid" alt="failure icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="failure-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Failure bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="failure-label" class="">Failure </h3>
+                    </div>
+                    <!-- Threat -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/threat-light.png" class="img-fluid" alt="threat icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="threat-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Threat bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="threat-label" class="">Threat </h3>
+                    </div>
+                    <!-- Despair -->
+                    <div class="col col-2 text-center">
+                        <img src="./images/despair-light.png" class="img-fluid" alt="despair icon" style="height:30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="form-outline" style="width:60%;">
+                                <input type="number" id="despair-input" class="form-control text-right h3" value="0"
+                                    min="0" data-toggle="tooltip" data-placement="top"
+                                    title="The number of Despair bonuses in the pool." />
+                            </div>
+                        </div>
+                        <h3 id="despair-label" class="">Despair </h3>
+                    </div>
+                </div>
+                <!--Trials-->
+                <div class="container-fluid">
+                    <!-- Number of Rolls & Run Trials -->
+                    <div class="d-flex justify-content-center row">
+                        <div id="total-roll-combos" class="text-center" data-toggle="tooltip" data-placement="top"
+                            title="This represents the total number of distinct arrangements of the dice pool.">Total
+                            Distinct Rolls:
+                            0</div>
+                        <div class="form-outline input-group" style="width:40%">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" style="border-radius: 10px 0 0 10px;">Number of
+                                    Rolls:</span>
+                            </div>
+                            <input type="number" id="roll-number-input" class="form-control text-center h3"
+                                value="1000000" min="0" />
+                            <div class="input-group-append">
+                                <button id="run-trials" class="myButton btn btn-success" type="button"
+                                    data-toggle="tooltip" data-placement="top" title="Start the calculation."
+                                    style="border-radius: 0 10px 10px 0;">Roll <i
+                                        class="fa-solid fa-caret-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="h6 text-center text-secondary"><i>Recommended Number of Rolls: 1,000,000</i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section-box" id="summary-box">
+            <!--Summary Collapser-->
+            <div style="width:100%;">
+                <button id="summary-btn" class="section-btn disabled">Summary</i></button>
+            </div>
+            <!--Summary-->
+            <div id="summary" class="bg-dark text-light "
+                style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
+                <!--Icon Strip-->
+                <div class="d-flex justify-content-center mb-2 mt-2">
+                    <div id="dice-icon-strip"></div>
+                </div>
+                <!--Roll Count-->
+                <div class="d-flex justify-content-center">
+                    <div id="roll-count-label" class="h4 text-center" style="width: 90%;"></div>
+                </div>
+                <!--Trial Summary-->
+                <div class="d-flex justify-content-center p-3">
+                    <div class="container row" style="width: 90%; max-height: 10%;">
+                        <!--Successes/Failures-->
+                        <div id="success-summary-box" class="col p-4">
+                            <div class="row align-items-center">
+                                <div id="trial-summary-success-label-icon" class="col-3 justify-content-center"></div>
+                                <div id="trial-summary-success-count" class="col display-4"></div>
+                            </div>
+                            <div class="row d-flex justify-content-center">
+                                <div id="trial-summary-success-label-text" class="col-6 display-4" style="width: 100%;">
+                                </div>
+                            </div>
+                        </div>
+                        <!--Advantages/Threats-->
+                        <div id="advantage-summary-box" class="col p-4">
+                            <div class="row align-items-center text-right">
+                                <div id="trial-summary-advantage-label-icon" class="col-3 justify-content-center"></div>
+                                <div id="trial-summary-advantage-count" class="col display-4"></div>
+                            </div>
+                            <div class="row d-flex justify-content-center">
+                                <div id="trial-summary-advantage-label-text" class="col-6 display-4"
+                                    style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--Run Time-->
+                <div class="d-flex justify-content-center text-center">
+                    <div id="run-time" class="text-secondary" style="width: 90%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="section-box" id="charts-box">
+            <div style="width:100%;">
+                <button id="charts-btn" class="section-btn disabled">Charts</i></button>
+            </div>
+            <!--Charts-->
+            <div id="charts" class="bg-dark text-light p-2"
+                style="border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
+                <!--Chart Tabs-->
+                <div class="row">
+            <span class="col-2">
+                <button id="netPercent-chart-btn" class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;">
+                    <b>Net %</b>
+                </button>
+            </span>
+            <span class="col-2">
+                <button id="totalPercent-chart-btn" class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;">
+                    <b>Total %</b>
+                </button>
+            </span>
+            <span class="col-2">
+                <button id="net-chart-btn" class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;">
+                    <b>Net</b>
+                </button>
+            </span>
+            <span class="col-2">
+                <button id="total-chart-btn" class="btn btn-success border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 1 !important;">
+                    <b>Total</b>
+                </button>
+            </span>
+            <span class="col-2">
+                <button id="stacked-chart-btn" class="disabled btn btn-secondary border-bottom-0 text-right mb-0 pb-0" style="width: 100%; border-radius: 10px 10px 0px 0px; position: relative; top: 1px; z-index: 2; opacity: 0.65;">
+                    <b>🚧 Stacked % 🚧</b>
+                </button>
+            </span>
+                <!--Highcharts Container-->
+                <div class="bg-light border border-success"
+                    style="width:100%; border-radius: 0px 10px 10px 10px; z-index: 1; box-shadow: 0px 1px 10px 1px green;">
+                    <!-- Net % Chart -->
+                    <div id="netPercent-chart-box">
+                        <div id="highchart-netPercent" class="bg-light"
+                            style="width: 100%; border-radius: 0px 10px 10px 10px;">
+                        </div>
+                    </div>
+                    <!-- Total % Chart -->
+                    <div id="totalPercent-chart-box">
+                        <div id="highchart-totalPercent" class="bg-light"
+                            style="width: 100%; border-radius: 0px 10px 10px 10px;">
+                        </div>
+                    </div>
+                    <!-- Net Chart -->
+                    <div id="net-chart-box">
+                        <div id="highchart-net" class="bg-light"
+                            style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
+                    </div>
+                    <!-- Total Chart -->
+                    <div id="total-chart-box">
+                        <div id="highchart-total" class="bg-light"
+                            style="width: 100%; border-radius: 0px 10px 10px 10px;"></div>
+                    </div>
+                    <!-- Chart Tips-->
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col">
+                            <div class="text-secondary text-right">ℹ <i>You can view charts with different information
+                                    by clicking the
+                                    green tabs near the top.</i></div>
+                            <div class="text-secondary text-right">ℹ <i>You can zoom in with the scroll wheel or by
+                                    clicking and
+                                    dragging.</i></div>
+                            <div class="text-secondary text-right">ℹ <i>While zoomed in, hold shift and then click and
+                                    drag to
+                                    pan.</i></div>
+                            <div class="text-secondary text-right">ℹ <i>Clicking on one of the outcomes in the chart
+                                    legend will
+                                    remove that outcome from the chart view.</i></div>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section-box" id="tables-box">
+            <!--Tables Collapser-->
+            <div style="width:100%;">
+                <button id="tables-btn" class="section-btn disabled">Tables</button>
+            </div>
+            <!--Tables-->
+            <div id="tables" class="bg-dark text-light "
+                style="width:100%; border-radius: 5px 5px 10px 10px; box-shadow: 0px 0px 5px 1px black">
+                <!-- Results Table -->
+                <div class="d-flex justify-content-center">
+                    <table id="results-table" class="table table-striped table-bordered text-light bg-dark"
+                        style="width: 90%;">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width:20%"></th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/success-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Success(es)</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/advantage-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Advantage(s)</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/triumph-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Triumph(s)</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/failure-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Failure(s)</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/threat-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Threat(s)</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-center">
+                                        <img src="./images/despair-light.png" class="img-fluid" alt="success icon"
+                                            style="height:30%; width:30%;">
+                                    </div>
+                                    <div class="text-center">Despair(s)</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                            <tr class="text-center">
+                                <th scope="row" data-toggle="tooltip" data-placement="top"
+                                    title="The sum of the all symbols resulting from all rolls.">Total</th>
+                                <td id="total-success">0</td>
+                                <td id="total-advantage">0</td>
+                                <td id="total-triumph">0</td>
+                                <td id="total-failure">0</td>
+                                <td id="total-threat">0</td>
+                                <td id="total-despair">0</td>
+                            </tr>
+                            </tr>
+                            <tr>
+                            <tr class="text-center">
+                                <th scope="row" data-toggle="tooltip" data-placement="top"
+                                    title="The sum of the all symbols resulting from all rolls, adjusted for cross-cancelling.">
+                                    Adjusted
+                                    Total</th>
+                                <td id="adjusted-total-success">0</td>
+                                <td id="adjusted-total-advantage">0</td>
+                                <td id="adjusted-total-triumph">0</td>
+                                <td id="adjusted-total-failure">0</td>
+                                <td id="adjusted-total-threat">0</td>
+                                <td id="adjusted-total-despair">0</td>
+                            </tr>
+                            </tr>
+                            <tr>
+                            <tr class="text-center">
+                                <th scope="row" data-toggle="tooltip" data-placement="top"
+                                    title="The sum of the all symbols resulting from all rolls, divided by the number of rolls.">
+                                    Average
+                                </th>
+                                <td id="average-success">0</td>
+                                <td id="average-advantage">0</td>
+                                <td id="average-triumph">0</td>
+                                <td id="average-failure">0</td>
+                                <td id="average-threat">0</td>
+                                <td id="average-despair">0</td>
+                            </tr>
+                            </tr>
+                            <tr>
+                            <tr class="text-center">
+                                <th scope="row" data-toggle="tooltip" data-placement="top"
+                                    title="The sum of the all symbols resulting from all rolls, divided by the number of rolls, .">
+                                    Adjusted Average</th>
+                                <td id="adjusted-average-success">0</td>
+                                <td id="adjusted-average-advantage">0</td>
+                                <td id="adjusted-average-triumph">0</td>
+                                <td id="adjusted-average-failure">0</td>
+                                <td id="adjusted-average-threat">0</td>
+                                <td id="adjusted-average-despair">0</td>
+                            </tr>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </body>
+<footer>
+    <div class="h6 text-center text-secondary">
+        <i>Last Update: July 13th, 2023</i>
+    </div>
+</footer>
 </html>
