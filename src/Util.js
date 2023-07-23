@@ -16,5 +16,12 @@ class Util{
         cases['title'] = _.startCase(_.camelCase(string));
         return cases;
     }
+    static fetchAndCreate(path, $parent){
+        fetch(path)
+            .then(response => response.text())
+            .then(html => {
+                $parent.append(html);
+            }).catch(err => console.log(err));
+    }
 }
 

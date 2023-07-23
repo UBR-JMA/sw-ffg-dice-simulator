@@ -1,1 +1,37 @@
-/*# sourceMappingURL=custom.css.map */
+
+body{
+    --dark: rgba(33,37,42,1);
+    --light: rgba(248,249,250,1);
+    --trans-black: rgba(0,0,0,0.5);
+    --scheme-orange: rgba(255,163,0, 1);
+    --scheme-gray: rgba(128, 128, 128, 1);
+
+
+    background: radial-gradient(circle at center, var(--dark), rgba(0,0,0,1));
+}
+.btn-check:focus+.btn-outline-success, .btn-outline-success:focus {
+    /* box-shadow: 0 0 0 0.25rem rgba(25,135,84,.5); */
+    box-shadow: none;
+}
+.overlay {
+    position: fixed;  /* Fixed/sticky position */
+    z-index: 9999;    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;      /* Full width */
+    height: 100%;     /* Full height */
+    background-color: rgba(0,0,0,0.5);  /* Black background with opacity */
+    pointer-events: auto;  /* Enable clicks on the overlay, disabling clicks on elements behind it */
+}
+#dice-icon-strip{
+    background-color: var(--dark);
+    border-radius: 20px;
+    justify-content: center !important;
+    display: flex !important;
+}
+.shadow-up{
+    box-shadow: 0px -6px 6px 3px var(--trans-black) inset,  0px 6px 6px 3px var(--trans-black);
+}
+.shadow-down{
+    box-shadow: 0px 6px 6px 3px var(--trans-black) inset, 0px -3px 6px 3px var(--trans-black);
+}

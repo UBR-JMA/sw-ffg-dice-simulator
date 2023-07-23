@@ -17,7 +17,6 @@ class SectionController{
             this[name] = {};
             this[name].cases = Util.getStringCases(name);
             this[name].id = this[name].cases.kebab;
-            this[name].controller = {};
         });
 
         this.formatContainers();
@@ -40,6 +39,8 @@ class SectionController{
         });
         this.formatButtons();
         this.$container.append($sectionBox);
+        this.e = sectionBox;
+        this.$ = $sectionBox;
     }
     formatButtons(){
         let buttonBox = document.createElement('div');

@@ -41,14 +41,13 @@
 }
 .section-btn-dormant:hover{
     color: rgba(255,163,0, 1);
-    text-shadow: 0px 0px 30px RGBA(248,249,250,1), 0px 0px 20px rgba(255,163,0, 1), 0px 0px 5px RGBA(0,0,0,0.1);
+    text-shadow: 0px 0px 10px rgba(255,163,0, 1), 0px 0px 5px RGBA(0,0,0,0.1);
 }
-/* .section-btn-dormant:active{
-    border: none;
+.section-btn-dormant:active{
     color: RGBA(248,249,250,1);
-    text-shadow: 0px 0px 30px rgba(255,163,0, 1), 0px 0px 15px rgba(255,163,0, 1);
-    box-shadow: 0px 6px 6px 3px RGBA(248,249,250,1) inset, 0px -6px 6px 3px RGBA(248,249,250,1);
-} */
+    text-shadow: 0px 0px 3px RGBA(248,249,250,1), 0px 0px 15px rgba(255,163,0, 1), 0px 0px 20px rgba(255,163,0, 1), 0px 0px 40px rgba(255,163,0, 1);
+    /* box-shadow: 0px 6px 6px 3px RGBA(248,249,250,1) inset, 0px -6px 6px 3px RGBA(248,249,250,1); */
+}
 .section-container{
     margin: 2%;
     padding: 1%;

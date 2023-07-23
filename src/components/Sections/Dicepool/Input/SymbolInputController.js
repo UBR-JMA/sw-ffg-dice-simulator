@@ -9,21 +9,20 @@ class SymbolInputController{
         this.init();
     }
     init(){
-        _.each(this.stringArrays, (stringArray, key)=>
+        _.each(this.stringArrays, (stringArray, key)=> {
+            this[key] = {};
             this.createMembers(stringArray, key)
-        );
+    });
     }
     createMembers(stringArray, key){
-        let camelSectionStrings = []
         _.each(stringArray, (sectionString)=>{
-            camelSectionStrings.push(_.camelCase(sectionString));
+            let name = _.camelCase(sectionString) 
+            this[key][name] = {};
+            this[key][name].cases = Util.getStringCases(name);
+            this[key][name].id = this[key][name].cases.kebab;
+            this[key][name].controller = {};
+            
         });
-        stringArray = camelSectionStrings;
-        _.each(stringArray, (name)=>{
-            this[name] = {};
-            this[name].cases = Util.getStringCases(name);
-        });
-        
     }
 }
 // this[name].id = this[name].cases.kebab;
